@@ -33,6 +33,8 @@ rektsafe/
 │   └── ui/                # shadcn/ui components
 ├── lib/
 │   └── utils.ts           # Utility functions (cn, etc.)
+├── .github/workflows/     # GitHub Actions
+│   └── deploy.yml         # Deploy to GitHub Pages
 ├── dist/                  # Build output (excluded from git)
 ├── package.json
 ├── next.config.ts         # Static export config
@@ -65,9 +67,36 @@ rektsafe/
 ## Development Commands
 
 ```bash
-npm run dev      # Start dev server (http://localhost:3000)
-npm run build    # Build static site to /dist
+pnpm install     # Install dependencies
+pnpm dev         # Start dev server (http://localhost:3000)
+pnpm build       # Build static site to /dist
 ```
+
+## Deployment
+
+### GitHub Pages (Automated)
+
+A GitHub Actions workflow is configured at `.github/workflows/deploy.yml`:
+
+1. **Push to main/master** triggers automatic deployment
+2. **Manual trigger** via Actions tab → "Deploy to GitHub Pages" → Run workflow
+
+**Setup required:**
+1. Go to Settings → Pages
+2. Source: GitHub Actions
+3. Push to main branch to trigger first deploy
+
+**For project pages** (username.github.io/repo-name):
+- Base path is auto-configured via `GITHUB_REPOSITORY` env var
+- Works out of the box with the workflow
+
+**For custom domain:**
+1. Update `next.config.ts`:
+   ```typescript
+   basePath: "",
+   assetPrefix: "",
+   ```
+2. Add CNAME file to `public/` directory with your domain
 
 ## Important Notes
 

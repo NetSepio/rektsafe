@@ -8,6 +8,7 @@ A decentralized, client-only dead man's switch that safely passes your crypto, f
 
 ![Cypherpunk Theme](https://img.shields.io/badge/Theme-Cypherpunk-00ff88)
 ![Crypto](https://img.shields.io/badge/Crypto-AES--256%2FEd25519-00d4ff)
+![Package Manager](https://img.shields.io/badge/Package-pnpm-orange)
 
 ## 🚀 Features
 
@@ -27,32 +28,42 @@ A decentralized, client-only dead man's switch that safely passes your crypto, f
 
 ## 🛠 Technology Stack
 
-- **Framework**: Next.js 15 + React 19
-- **Styling**: Tailwind CSS + shadcn/ui
-- **Animations**: Framer Motion
-- **Cryptography**: Web Crypto API (Ed25519, AES-256-GCM, SHA-256)
-- **Language**: TypeScript
+| Technology | Purpose |
+|------------|---------|
+| **Next.js 15** | React framework |
+| **React 19** | UI library |
+| **TypeScript** | Type safety |
+| **Tailwind CSS** | Styling |
+| **shadcn/ui** | Component library |
+| **Framer Motion** | Animations |
+| **pnpm** | Package manager |
+| **Web Crypto API** | Cryptography (Ed25519, AES-256-GCM, SHA-256) |
 
 ## 📁 Project Structure
 
 ```
-my-app/
-├── app/                    # Next.js app directory
-│   ├── app/               # Crypto playground (TSS demo)
-│   ├── privacy/           # Privacy policy page
-│   ├── terms/             # Terms of service page
-│   ├── globals.css        # Global styles + cypherpunk theme
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Home page
-├── components/            # React components
-│   ├── navbar.tsx         # Navigation with glitch effects
-│   ├── footer.tsx         # Minimal footer
-│   ├── hero.tsx           # Animated hero section
-│   ├── features.tsx       # Feature cards
-│   ├── how-it-works.tsx   # Process steps
-│   ├── tech-stack.tsx     # Technology showcase
-│   └── cta.tsx            # Call to action
-└── components/ui/         # shadcn/ui components
+rektsafe/
+├── app/                   # Next.js app directory
+│   ├── vault/            # Crypto vault (TSS app)
+│   ├── privacy/          # Privacy policy page
+│   ├── terms/            # Terms of service page
+│   ├── globals.css       # Global styles + cypherpunk theme
+│   ├── layout.tsx        # Root layout
+│   └── page.tsx          # Home page
+├── components/           # React components
+│   ├── navbar.tsx        # Navigation with glitch effects
+│   ├── footer.tsx        # Minimal footer
+│   ├── hero.tsx          # Animated hero section
+│   ├── features.tsx      # Feature cards
+│   ├── how-it-works.tsx  # Process steps
+│   ├── tech-stack.tsx    # Technology showcase
+│   ├── cta.tsx           # Call to action
+│   └── ui/               # shadcn/ui components
+├── .github/workflows/    # GitHub Actions
+│   └── deploy.yml        # Deploy to GitHub Pages
+├── lib/
+│   └── utils.ts          # Utility functions
+└── package.json
 ```
 
 ## 🚀 Getting Started
@@ -60,25 +71,32 @@ my-app/
 ### Prerequisites
 
 - Node.js 18+
-- npm or yarn
+- pnpm (install via `npm install -g pnpm`)
 
 ### Installation
 
 ```bash
-# Navigate to the app directory
-cd my-app
-
 # Install dependencies
-npm install
+pnpm install
 
 # Run development server
-npm run dev
+pnpm dev
 
 # Build for production
-npm run build
+pnpm build
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the app.
+
+## 📦 Deployment
+
+### GitHub Pages (Automated)
+
+Push to `main` branch triggers automatic deployment via GitHub Actions.
+
+1. Go to **Settings → Pages**
+2. Set **Source** to "GitHub Actions"
+3. Push to main branch
 
 ## 🔐 Security
 
@@ -92,9 +110,9 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 ## 📝 Pages
 
 - **Home** (`/`) - Landing page with features and how it works
-- **App** (`/app`) - Interactive TSS encryption/decryption demo
-- **Privacy** (`/privacy`) - Privacy policy
-- **Terms** (`/terms`) - Terms of service
+- **Vault** (`/vault/`) - Interactive TSS encryption/decryption app
+- **Privacy** (`/privacy/`) - Privacy policy
+- **Terms** (`/terms/`) - Terms of service
 
 ## 🎨 Theme Colors
 

@@ -16,11 +16,15 @@ import {
   Copy,
   Download,
   Share2,
+  MessageSquare,
+  FileSignature,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Party {
   id: number;
@@ -58,6 +62,12 @@ const arrayBufferToHex = (buffer: ArrayBuffer): string => {
   return Array.from(new Uint8Array(buffer))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+};
+
+const hexToArrayBuffer = (hex: string): Uint8Array => {
+  return new Uint8Array(
+    hex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
+  );
 };
 
 function TerminalOutput({
@@ -113,6 +123,12 @@ export default function VaultPage() {
     type: string;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Message signing state
+  const [messageToSign, setMessageToSign] = useState("");
+  const [messageSignature, setMessageSignature] = useState("");
+  const [messageToVerify, setMessageToVerify] = useState("");
+  const [signatureToVerify, setSignatureToVerify] = useState("");
 
   const generateKeys = async () => {
     try {
@@ -351,12 +367,128 @@ export default function VaultPage() {
     }
   };
 
+  // Sign message
+  const signMessage = async () => {
+    if (!messageToSign.trim()) {
+      setOutput({
+        lines: ["ERROR: Please enter a message to sign!"],
+        type: "error",
+      });
+      return;
+    }
+
+    if (!tssSystem.masterPrivateKey) {
+      setOutput({
+        lines: ["ERROR: No keys generated! Please set up threshold first."],
+        type: "error",
+      });
+      return;
+    }
+
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(messageToSign);
+
+      const signature = await window.crypto.subtle.sign(
+        "Ed25519",
+        tssSystem.masterPrivateKey,
+        data,
+      );
+
+      const sigHex = arrayBufferToHex(signature);
+      setMessageSignature(sigHex);
+      setOutput({
+        lines: [
+          `✓ Message signed successfully`,
+          `✓ Signature: ${sigHex.slice(0, 64)}...`,
+          `✓ Copied to clipboard`,
+        ],
+        type: "success",
+      });
+
+      navigator.clipboard.writeText(sigHex);
+    } catch (error) {
+      setOutput({
+        lines: [`ERROR: ${(error as Error).message}`],
+        type: "error",
+      });
+    }
+  };
+
+  // Verify message
+  const verifyMessage = async () => {
+    if (!messageToVerify.trim() || !signatureToVerify.trim()) {
+      setOutput({
+        lines: ["ERROR: Please enter both message and signature!"],
+        type: "error",
+      });
+      return;
+    }
+
+    if (!tssSystem.publicKeyCrypto) {
+      setOutput({
+        lines: [
+          "ERROR: No public key available! Please set up threshold first.",
+        ],
+        type: "error",
+      });
+      return;
+    }
+
+    try {
+      const signature = hexToArrayBuffer(signatureToVerify);
+      const encoder = new TextEncoder();
+      const data = encoder.encode(messageToVerify);
+
+      const isValid = await window.crypto.subtle.verify(
+        "Ed25519",
+        tssSystem.publicKeyCrypto,
+        signature as unknown as BufferSource,
+        data,
+      );
+
+      if (isValid) {
+        setOutput({
+          lines: [
+            `✓ Signature is VALID`,
+            `✓ Message authenticated`,
+            `✓ Signed by key holder`,
+          ],
+          type: "success",
+        });
+      } else {
+        setOutput({
+          lines: [
+            `✗ Signature is INVALID`,
+            `✗ Message may be tampered`,
+            `✗ Verification failed`,
+          ],
+          type: "error",
+        });
+      }
+    } catch (error) {
+      setOutput({
+        lines: [`ERROR: ${(error as Error).message}`],
+        type: "error",
+      });
+    }
+  };
+
+  const copySignature = () => {
+    navigator.clipboard.writeText(messageSignature);
+    setOutput({ lines: ["✓ Signature copied to clipboard"], type: "success" });
+  };
+
   const reset = () => {
     setTssSystem(initialTSSState);
     setStep("setup");
     setOutput(null);
     setSelectedParties(new Set());
     setFileInfo(null);
+    setMessageToSign("");
+    setMessageSignature("");
+    setMessageToVerify("");
+    setSignatureToVerify("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -672,6 +804,98 @@ export default function VaultPage() {
                       <Unlock className="w-4 h-4 mr-2" />
                       Decrypt & Download File
                     </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* MESSAGE SIGNING & VERIFICATION */}
+            {tssSystem.masterPrivateKey && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg font-mono">
+                      <MessageSquare className="w-5 h-5 text-accent" />
+                      Message Signing & Verification
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Sign Message */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                        <FileSignature className="w-4 h-4 text-primary" />
+                        Sign a Message
+                      </div>
+                      <Textarea
+                        value={messageToSign}
+                        onChange={(e) => setMessageToSign(e.target.value)}
+                        placeholder="Enter message to sign..."
+                        className="font-mono"
+                      />
+                      <Button
+                        onClick={signMessage}
+                        disabled={!messageToSign.trim()}
+                        className="w-full"
+                      >
+                        <FileSignature className="w-4 h-4 mr-2" />
+                        Sign Message
+                      </Button>
+                      {messageSignature && (
+                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-muted-foreground">
+                              Signature (hex):
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={copySignature}
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                          </div>
+                          <code className="block text-xs font-mono text-primary break-all">
+                            {messageSignature}
+                          </code>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="border-t border-border/50" />
+
+                    {/* Verify Message */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                        <ShieldCheck className="w-4 h-4 text-accent" />
+                        Verify a Signature
+                      </div>
+                      <Textarea
+                        value={messageToVerify}
+                        onChange={(e) => setMessageToVerify(e.target.value)}
+                        placeholder="Enter original message..."
+                        className="font-mono"
+                      />
+                      <Input
+                        value={signatureToVerify}
+                        onChange={(e) => setSignatureToVerify(e.target.value)}
+                        placeholder="Enter signature (hex)..."
+                        className="font-mono"
+                      />
+                      <Button
+                        onClick={verifyMessage}
+                        disabled={
+                          !messageToVerify.trim() || !signatureToVerify.trim()
+                        }
+                        variant="outline"
+                        className="w-full border-accent/50 text-accent hover:bg-accent/10"
+                      >
+                        <ShieldCheck className="w-4 h-4 mr-2" />
+                        Verify Signature
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
