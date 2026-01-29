@@ -49,6 +49,10 @@ jobs:
 
       - name: Build Next.js app
         run: pnpm run build
+        env:
+          # Set to empty string for custom domain (e.g., rektsafe.com)
+          # Remove or comment out this line if using username.github.io/repo-name
+          BASE_PATH: ""
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
