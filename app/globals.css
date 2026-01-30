@@ -5,202 +5,337 @@
 
 /* Custom Cypherpunk Theme Colors */
 :root {
-  --radius: 0.625rem;
+    --radius: 0.625rem;
 
-  /* Cypherpunk Dark Theme - Default */
-  --background: #0a0a0f;
-  --foreground: #e0e0e0;
-  --card: #12121a;
-  --card-foreground: #e0e0e0;
-  --popover: #12121a;
-  --popover-foreground: #e0e0e0;
-  --primary: #00ff88;
-  --primary-foreground: #0a0a0f;
-  --secondary: #1a1a2e;
-  --secondary-foreground: #e0e0e0;
-  --muted: #1e1e2e;
-  --muted-foreground: #8888a0;
-  --accent: #ff006e;
-  --accent-foreground: #ffffff;
-  --destructive: #ff3366;
-  --border: #2a2a3e;
-  --input: #1a1a2e;
-  --ring: #00ff88;
+    /* Cypherpunk Dark Theme - Default */
+    --background: #0a0a0f;
+    --foreground: #e0e0e0;
+    --card: #12121a;
+    --card-foreground: #e0e0e0;
+    --popover: #12121a;
+    --popover-foreground: #e0e0e0;
+    --primary: #00ff88;
+    --primary-foreground: #0a0a0f;
+    --secondary: #1a1a2e;
+    --secondary-foreground: #e0e0e0;
+    --muted: #1e1e2e;
+    --muted-foreground: #8888a0;
+    --accent: #ff006e;
+    --accent-foreground: #ffffff;
+    --destructive: #ff3366;
+    --border: #2a2a3e;
+    --input: #1a1a2e;
+    --ring: #00ff88;
 
-  /* Chart colors for data viz */
-  --chart-1: #00ff88;
-  --chart-2: #00d4ff;
-  --chart-3: #ff006e;
-  --chart-4: #ffaa00;
-  --chart-5: #9d4edd;
+    /* Chart colors for data viz */
+    --chart-1: #00ff88;
+    --chart-2: #00d4ff;
+    --chart-3: #ff006e;
+    --chart-4: #ffaa00;
+    --chart-5: #9d4edd;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--ring);
-  --color-sidebar-border: var(--border);
-  --color-sidebar-accent-foreground: var(--accent-foreground);
-  --color-sidebar-accent: var(--accent);
-  --color-sidebar-primary-foreground: var(--primary-foreground);
-  --color-sidebar-primary: var(--primary);
-  --color-sidebar-foreground: var(--foreground);
-  --color-sidebar: var(--card);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
+    --color-sidebar-ring: var(--ring);
+    --color-sidebar-border: var(--border);
+    --color-sidebar-accent-foreground: var(--accent-foreground);
+    --color-sidebar-accent: var(--accent);
+    --color-sidebar-primary-foreground: var(--primary-foreground);
+    --color-sidebar-primary: var(--primary);
+    --color-sidebar-foreground: var(--foreground);
+    --color-sidebar: var(--card);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --radius-2xl: calc(var(--radius) + 8px);
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
+    * {
+        @apply border-border outline-ring/50;
+    }
 
-  html {
-    scroll-behavior: smooth;
-  }
+    html {
+        scroll-behavior: smooth;
+    }
 
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
+    body {
+        @apply bg-background text-foreground antialiased;
+        font-feature-settings:
+            "rlig" 1,
+            "calt" 1;
+    }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
 
-  ::-webkit-scrollbar-track {
-    background: var(--background);
-  }
+    ::-webkit-scrollbar-track {
+        background: var(--background);
+    }
 
-  ::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 4px;
-  }
+    ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
+    }
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--muted-foreground);
-  }
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--muted-foreground);
+    }
 }
 
 /* Glow effects */
 .glow-primary {
-  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3),
-              0 0 40px rgba(0, 255, 136, 0.1);
+    box-shadow:
+        0 0 20px rgba(0, 255, 136, 0.3),
+        0 0 40px rgba(0, 255, 136, 0.1);
 }
 
 .glow-accent {
-  box-shadow: 0 0 20px rgba(255, 0, 110, 0.3),
-              0 0 40px rgba(255, 0, 110, 0.1);
+    box-shadow:
+        0 0 20px rgba(255, 0, 110, 0.3),
+        0 0 40px rgba(255, 0, 110, 0.1);
 }
 
 .glow-cyan {
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3),
-              0 0 40px rgba(0, 212, 255, 0.1);
+    box-shadow:
+        0 0 20px rgba(0, 212, 255, 0.3),
+        0 0 40px rgba(0, 212, 255, 0.1);
 }
 
 /* Text glow */
 .text-glow {
-  text-shadow: 0 0 10px currentColor,
-               0 0 20px currentColor,
-               0 0 40px currentColor;
+    text-shadow:
+        0 0 10px currentColor,
+        0 0 20px currentColor,
+        0 0 40px currentColor;
 }
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #00ff88 0%, #00d4ff 50%, #ff006e 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+    background: linear-gradient(135deg, #00ff88 0%, #00d4ff 50%, #ff006e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 /* Grid background pattern */
 .grid-pattern {
-  background-image:
-    linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
+    background-image:
+        linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
 }
 
 /* Scanline effect */
 .scanlines::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.1),
-    rgba(0, 0, 0, 0.1) 1px,
-    transparent 1px,
-    transparent 2px
-  );
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.3;
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.1),
+        rgba(0, 0, 0, 0.1) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.3;
 }
 
 /* Pulse glow animation */
 @keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3),
-                0 0 40px rgba(0, 255, 136, 0.1);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(0, 255, 136, 0.5),
-                0 0 60px rgba(0, 255, 136, 0.2);
-  }
+    0%,
+    100% {
+        box-shadow:
+            0 0 20px rgba(0, 255, 136, 0.3),
+            0 0 40px rgba(0, 255, 136, 0.1);
+    }
+    50% {
+        box-shadow:
+            0 0 30px rgba(0, 255, 136, 0.5),
+            0 0 60px rgba(0, 255, 136, 0.2);
+    }
 }
 
 .pulse-glow {
-  animation: pulseGlow 2s ease-in-out infinite;
+    animation: pulseGlow 2s ease-in-out infinite;
 }
 
 /* Floating animation */
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
 }
 
 .float {
-  animation: float 3s ease-in-out infinite;
+    animation: float 3s ease-in-out infinite;
 }
 
 /* Selection color */
 ::selection {
-  background: rgba(0, 255, 136, 0.3);
-  color: #fff;
+    background: rgba(0, 255, 136, 0.3);
+    color: #fff;
+}
+
+/* ============================================
+   APPKIT / REOWN WALLET BUTTON STYLING
+   ============================================ */
+
+/* Make appkit-button display properly */
+appkit-button {
+    display: block !important;
+    width: 100% !important;
+}
+
+/* Target the button part inside appkit-button */
+appkit-button::part(button) {
+    width: 100% !important;
+    min-height: 56px !important;
+    padding: 16px 24px !important;
+    font-family:
+        var(--font-geist-mono),
+        ui-monospace,
+        SF Mono,
+        Menlo,
+        monospace !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    border-radius: 12px !important;
+    border: 2px solid rgba(0, 255, 136, 0.5) !important;
+    background: linear-gradient(
+        135deg,
+        rgba(0, 255, 136, 0.15) 0%,
+        rgba(0, 255, 136, 0.05) 100%
+    ) !important;
+    color: #00ff88 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+appkit-button::part(button):hover {
+    background: linear-gradient(
+        135deg,
+        rgba(0, 255, 136, 0.9) 0%,
+        rgba(0, 255, 136, 0.7) 100%
+    ) !important;
+    color: #0a0a0f !important;
+    border-color: #00ff88 !important;
+    box-shadow:
+        0 0 30px rgba(0, 255, 136, 0.4),
+        0 0 60px rgba(0, 255, 136, 0.2) !important;
+    transform: translateY(-1px) !important;
+}
+
+appkit-button::part(button):active {
+    transform: translateY(0) !important;
+}
+
+/* Avatar styling */
+appkit-button::part(avatar) {
+    border-color: #00ff88 !important;
+    border-width: 2px !important;
+}
+
+/* Address text styling */
+appkit-button::part(address) {
+    color: #00ff88 !important;
+    font-family: var(--font-geist-mono), ui-monospace, monospace !important;
+}
+
+/* ============================================
+   APPKIT MODAL DARK THEME OVERRIDES
+   ============================================ */
+
+/* Modal overlay */
+w3m-modal,
+[w3m-modal] {
+    --w3m-accent: #00ff88 !important;
+    --w3m-color-mix: #0a0a0f !important;
+    --w3m-color-mix-strength: 80 !important;
+    --w3m-font-family:
+        var(--font-geist-mono), ui-monospace, monospace !important;
+}
+
+/* Ensure dark background on overlay */
+w3m-modal::part(overlay),
+[w3m-modal]::part(overlay) {
+    background: rgba(10, 10, 15, 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+}
+
+/* Modal container */
+w3m-modal::part(container),
+[w3m-modal]::part(container) {
+    background: #12121a !important;
+    border: 1px solid #2a2a3e !important;
+    border-radius: 16px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Text colors in modal */
+w3m-modal [data-testid="modal-header"],
+[w3m-modal] [data-testid="modal-header"] {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+/* Wallet list items */
+w3m-modal [data-testid="wallet-list-item"],
+[w3m-modal] [data-testid="wallet-list-item"] {
+    background: #1a1a2e !important;
+    border: 1px solid #2a2a3e !important;
+    border-radius: 12px !important;
+    margin-bottom: 8px !important;
+}
+
+w3m-modal [data-testid="wallet-list-item"]:hover,
+[w3m-modal] [data-testid="wallet-list-item"]:hover {
+    background: #2a2a3e !important;
+    border-color: #00ff88 !important;
+}
+
+/* Secondary text */
+w3m-modal [data-testid="secondary-text"],
+[w3m-modal] [data-testid="secondary-text"] {
+    color: #8888a0 !important;
 }

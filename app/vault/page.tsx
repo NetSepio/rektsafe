@@ -19,12 +19,14 @@ import {
   MessageSquare,
   FileSignature,
   ShieldCheck,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { WalletGuard } from "@/components/wallet-guard";
 
 interface Party {
   id: number;
@@ -493,486 +495,495 @@ export default function VaultPage() {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
-            <Terminal className="w-4 h-4 text-primary" />
-            <span className="text-xs font-mono text-primary uppercase tracking-wider">
-              Secure Vault
-            </span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-            <span className="text-foreground">Threshold Signature </span>
-            <span className="gradient-text">Vault</span>
-          </h1>
-          <p className="text-muted-foreground font-mono text-sm max-w-xl mx-auto">
-            Split your keys among trusted parties. Any {threshold} of{" "}
-            {totalParties} can recover your data.
-          </p>
-        </motion.div>
+    <WalletGuard>
+      <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-8"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
+              <Terminal className="w-4 h-4 text-primary" />
+              <span className="text-xs font-mono text-primary uppercase tracking-wider">
+                Secure Vault
+              </span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold mb-2">
+              <span className="text-foreground">Threshold Signature </span>
+              <span className="gradient-text">Vault</span>
+            </h1>
+            <p className="text-muted-foreground font-mono text-sm max-w-xl mx-auto">
+              Split your keys among trusted parties. Any {threshold} of{" "}
+              {totalParties} can recover your data.
+            </p>
+          </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            {/* STEP 1: Setup */}
-            {step === "setup" && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-              >
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg font-mono">
-                      <KeyRound className="w-5 h-5 text-primary" />
-                      Step 1: Configure Threshold
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Choose how many parties will hold key shares, and how
-                        many are needed to decrypt:
-                      </p>
-                      <div className="flex items-center gap-2 text-primary font-mono text-sm">
-                        <Users className="w-4 h-4" />
-                        <span>
-                          Any {threshold} of {totalParties} parties can recover
-                          your data
-                        </span>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm text-muted-foreground mb-2 block">
-                          Total Parties (n)
-                        </label>
-                        <Input
-                          type="number"
-                          min={2}
-                          max={10}
-                          value={totalParties}
-                          onChange={(e) =>
-                            setTotalParties(parseInt(e.target.value))
-                          }
-                          className="font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm text-muted-foreground mb-2 block">
-                          Threshold (k)
-                        </label>
-                        <Input
-                          type="number"
-                          min={2}
-                          max={totalParties}
-                          value={threshold}
-                          onChange={(e) =>
-                            setThreshold(parseInt(e.target.value))
-                          }
-                          className="font-mono"
-                        />
-                      </div>
-                    </div>
-                    <Button
-                      onClick={generateKeys}
-                      className="w-full glow-primary"
-                    >
-                      <KeyRound className="w-4 h-4 mr-2" />
-                      Generate Key Shares
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-
-            {/* STEP 2: Distribute Shares */}
-            {(step === "shares" ||
-              step === "encrypt" ||
-              step === "decrypt") && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg font-mono">
-                      <Share2 className="w-5 h-5 text-primary" />
-                      Step 2: Distribute Key Shares
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="p-4 rounded-lg bg-[#ffaa00]/10 border border-[#ffaa00]/20">
-                      <p className="text-sm font-mono">
-                        <span className="text-[#ffaa00]">⚠️ IMPORTANT:</span>{" "}
-                        Share each key with a different trusted party. You need{" "}
-                        <strong>
-                          any {tssSystem.threshold} of {tssSystem.totalParties}
-                        </strong>{" "}
-                        to decrypt your data.
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                      {tssSystem.privateKeyShares.map((party) => (
-                        <div
-                          key={party.id}
-                          className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-mono text-sm font-semibold">
-                              Key Share {party.id}
-                            </span>
-                            <Badge variant="outline" className="text-xs">
-                              Party {party.id}
-                            </Badge>
-                          </div>
-                          <code className="block text-xs font-mono text-muted-foreground truncate mb-3">
-                            {party.kid}
-                          </code>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="w-full text-xs"
-                            onClick={() => copyShare(party.id)}
-                          >
-                            <Copy className="w-3 h-3 mr-1" />
-                            Copy Share
-                          </Button>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              {/* STEP 1: Setup */}
+              {step === "setup" && (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                >
+                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg font-mono">
+                        <KeyRound className="w-5 h-5 text-primary" />
+                        Step 1: Configure Threshold
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Choose how many parties will hold key shares, and how
+                          many are needed to decrypt:
+                        </p>
+                        <div className="flex items-center gap-2 text-primary font-mono text-sm">
+                          <Users className="w-4 h-4" />
+                          <span>
+                            Any {threshold} of {totalParties} parties can
+                            recover your data
+                          </span>
                         </div>
-                      ))}
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={downloadShares}
-                        variant="outline"
-                        className="flex-1"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download All Shares
-                      </Button>
-                      <Button
-                        onClick={() => setStep("encrypt")}
-                        className="flex-1 glow-primary"
-                      >
-                        <Lock className="w-4 h-4 mr-2" />
-                        Continue to Encrypt
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-
-            {/* STEP 3: Encrypt */}
-            {(step === "encrypt" || step === "decrypt") && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg font-mono">
-                      <Lock className="w-5 h-5 text-primary" />
-                      Step 3: Encrypt Your File
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="border-2 border-dashed border-border/50 rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        onChange={handleFileSelect}
-                        className="hidden"
-                        id="file-upload"
-                      />
-                      <label
-                        htmlFor="file-upload"
-                        className="cursor-pointer flex flex-col items-center gap-2"
-                      >
-                        <Upload className="w-10 h-10 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          Click to select file to encrypt
-                        </span>
-                      </label>
-                    </div>
-                    {fileInfo && (
-                      <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 font-mono text-sm">
-                        <div>File: {fileInfo.name}</div>
-                        <div>Size: {(fileInfo.size / 1024).toFixed(2)} KB</div>
                       </div>
-                    )}
-                    <Button
-                      onClick={encryptFile}
-                      disabled={!fileInfo}
-                      className="w-full"
-                    >
-                      <Lock className="w-4 h-4 mr-2" />
-                      Encrypt File
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm text-muted-foreground mb-2 block">
+                            Total Parties (n)
+                          </label>
+                          <Input
+                            type="number"
+                            min={2}
+                            max={10}
+                            value={totalParties}
+                            onChange={(e) =>
+                              setTotalParties(parseInt(e.target.value))
+                            }
+                            className="font-mono"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-muted-foreground mb-2 block">
+                            Threshold (k)
+                          </label>
+                          <Input
+                            type="number"
+                            min={2}
+                            max={totalParties}
+                            value={threshold}
+                            onChange={(e) =>
+                              setThreshold(parseInt(e.target.value))
+                            }
+                            className="font-mono"
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        onClick={generateKeys}
+                        className="w-full glow-primary"
+                      >
+                        <KeyRound className="w-4 h-4 mr-2" />
+                        Generate Key Shares
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
 
-            {/* STEP 4: Decrypt */}
-            {step === "decrypt" && tssSystem.encryptedFile && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg font-mono">
-                      <Unlock className="w-5 h-5 text-primary" />
-                      Step 4: Decrypt (Recover Data)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="p-4 rounded-lg bg-accent/10 border border-accent/20">
-                      <p className="text-sm text-muted-foreground">
-                        To recover <strong>{tssSystem.originalFileName}</strong>
-                        , select
-                        <strong> any {tssSystem.threshold} parties</strong> that
-                        hold your key shares:
-                      </p>
-                    </div>
+              {/* STEP 2: Distribute Shares */}
+              {(step === "shares" ||
+                step === "encrypt" ||
+                step === "decrypt") && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg font-mono">
+                        <Share2 className="w-5 h-5 text-primary" />
+                        Step 2: Distribute Key Shares
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="p-4 rounded-lg bg-[#ffaa00]/10 border border-[#ffaa00]/20">
+                        <p className="text-sm font-mono">
+                          <span className="text-[#ffaa00]">⚠️ IMPORTANT:</span>{" "}
+                          Share each key with a different trusted party. You
+                          need{" "}
+                          <strong>
+                            any {tssSystem.threshold} of{" "}
+                            {tssSystem.totalParties}
+                          </strong>{" "}
+                          to decrypt your data.
+                        </p>
+                      </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                      {tssSystem.privateKeyShares.map((party) => (
-                        <button
-                          key={party.id}
-                          onClick={() => toggleParty(party.id)}
-                          className={`p-3 rounded-lg border transition-all ${
-                            selectedParties.has(party.id)
-                              ? "bg-primary/20 border-primary"
-                              : "bg-card border-border hover:border-primary/50"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`w-4 h-4 rounded border flex items-center justify-center ${
-                                selectedParties.has(party.id)
-                                  ? "bg-primary border-primary"
-                                  : "border-muted-foreground"
-                              }`}
-                            >
-                              {selectedParties.has(party.id) && (
-                                <CheckCircle className="w-3 h-3 text-primary-foreground" />
-                              )}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        {tssSystem.privateKeyShares.map((party) => (
+                          <div
+                            key={party.id}
+                            className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-colors"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-mono text-sm font-semibold">
+                                Key Share {party.id}
+                              </span>
+                              <Badge variant="outline" className="text-xs">
+                                Party {party.id}
+                              </Badge>
                             </div>
-                            <span className="text-sm font-mono">
-                              Party {party.id}
-                            </span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-card border border-border">
-                      <span className="text-sm text-muted-foreground">
-                        Selected: {selectedParties.size} / {tssSystem.threshold}{" "}
-                        required
-                      </span>
-                      <Badge
-                        variant={
-                          selectedParties.size >= tssSystem.threshold
-                            ? "default"
-                            : "outline"
-                        }
-                        className={
-                          selectedParties.size >= tssSystem.threshold
-                            ? "bg-primary"
-                            : ""
-                        }
-                      >
-                        {selectedParties.size >= tssSystem.threshold
-                          ? "Ready"
-                          : "Insufficient"}
-                      </Badge>
-                    </div>
-
-                    <Button
-                      onClick={decryptFile}
-                      disabled={selectedParties.size < tssSystem.threshold}
-                      className="w-full glow-primary"
-                    >
-                      <Unlock className="w-4 h-4 mr-2" />
-                      Decrypt & Download File
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-
-            {/* MESSAGE SIGNING & VERIFICATION */}
-            {tssSystem.masterPrivateKey && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg font-mono">
-                      <MessageSquare className="w-5 h-5 text-accent" />
-                      Message Signing & Verification
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Sign Message */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                        <FileSignature className="w-4 h-4 text-primary" />
-                        Sign a Message
-                      </div>
-                      <Textarea
-                        value={messageToSign}
-                        onChange={(e) => setMessageToSign(e.target.value)}
-                        placeholder="Enter message to sign..."
-                        className="font-mono"
-                      />
-                      <Button
-                        onClick={signMessage}
-                        disabled={!messageToSign.trim()}
-                        className="w-full"
-                      >
-                        <FileSignature className="w-4 h-4 mr-2" />
-                        Sign Message
-                      </Button>
-                      {messageSignature && (
-                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-muted-foreground">
-                              Signature (hex):
-                            </span>
+                            <code className="block text-xs font-mono text-muted-foreground truncate mb-3">
+                              {party.kid}
+                            </code>
                             <Button
                               size="sm"
-                              variant="ghost"
-                              onClick={copySignature}
+                              variant="outline"
+                              className="w-full text-xs"
+                              onClick={() => copyShare(party.id)}
                             >
-                              <Copy className="w-3 h-3" />
+                              <Copy className="w-3 h-3 mr-1" />
+                              Copy Share
                             </Button>
                           </div>
-                          <code className="block text-xs font-mono text-primary break-all">
-                            {messageSignature}
-                          </code>
+                        ))}
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={downloadShares}
+                          variant="outline"
+                          className="flex-1"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Download All Shares
+                        </Button>
+                        <Button
+                          onClick={() => setStep("encrypt")}
+                          className="flex-1 glow-primary"
+                        >
+                          <Lock className="w-4 h-4 mr-2" />
+                          Continue to Encrypt
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* STEP 3: Encrypt */}
+              {(step === "encrypt" || step === "decrypt") && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg font-mono">
+                        <Lock className="w-5 h-5 text-primary" />
+                        Step 3: Encrypt Your File
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="border-2 border-dashed border-border/50 rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                          id="file-upload"
+                        />
+                        <label
+                          htmlFor="file-upload"
+                          className="cursor-pointer flex flex-col items-center gap-2"
+                        >
+                          <Upload className="w-10 h-10 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            Click to select file to encrypt
+                          </span>
+                        </label>
+                      </div>
+                      {fileInfo && (
+                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 font-mono text-sm">
+                          <div>File: {fileInfo.name}</div>
+                          <div>
+                            Size: {(fileInfo.size / 1024).toFixed(2)} KB
+                          </div>
                         </div>
                       )}
-                    </div>
-
-                    <div className="border-t border-border/50" />
-
-                    {/* Verify Message */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                        <ShieldCheck className="w-4 h-4 text-accent" />
-                        Verify a Signature
-                      </div>
-                      <Textarea
-                        value={messageToVerify}
-                        onChange={(e) => setMessageToVerify(e.target.value)}
-                        placeholder="Enter original message..."
-                        className="font-mono"
-                      />
-                      <Input
-                        value={signatureToVerify}
-                        onChange={(e) => setSignatureToVerify(e.target.value)}
-                        placeholder="Enter signature (hex)..."
-                        className="font-mono"
-                      />
                       <Button
-                        onClick={verifyMessage}
-                        disabled={
-                          !messageToVerify.trim() || !signatureToVerify.trim()
-                        }
-                        variant="outline"
-                        className="w-full border-accent/50 text-accent hover:bg-accent/10"
+                        onClick={encryptFile}
+                        disabled={!fileInfo}
+                        className="w-full"
                       >
-                        <ShieldCheck className="w-4 h-4 mr-2" />
-                        Verify Signature
+                        <Lock className="w-4 h-4 mr-2" />
+                        Encrypt File
                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
 
-          {/* Sidebar: Output & Info */}
-          <div className="space-y-6">
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm sticky top-24">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm font-mono">
-                  <Terminal className="w-4 h-4 text-primary" />
-                  Output
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {output ? (
-                  <TerminalOutput lines={output.lines} type={output.type} />
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Terminal className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm font-mono">No output yet</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+              {/* STEP 4: Decrypt */}
+              {step === "decrypt" && tssSystem.encryptedFile && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg font-mono">
+                        <Unlock className="w-5 h-5 text-primary" />
+                        Step 4: Decrypt (Recover Data)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="p-4 rounded-lg bg-accent/10 border border-accent/20">
+                        <p className="text-sm text-muted-foreground">
+                          To recover{" "}
+                          <strong>{tssSystem.originalFileName}</strong>, select
+                          <strong>
+                            {" "}
+                            any {tssSystem.threshold} parties
+                          </strong>{" "}
+                          that hold your key shares:
+                        </p>
+                      </div>
 
-            {tssSystem.publicKey && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-mono flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-primary" />
-                      Configuration
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-2 rounded bg-black/30">
-                        <span className="text-xs text-muted-foreground">
-                          Total Parties
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                        {tssSystem.privateKeyShares.map((party) => (
+                          <button
+                            key={party.id}
+                            onClick={() => toggleParty(party.id)}
+                            className={`p-3 rounded-lg border transition-all ${
+                              selectedParties.has(party.id)
+                                ? "bg-primary/20 border-primary"
+                                : "bg-card border-border hover:border-primary/50"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`w-4 h-4 rounded border flex items-center justify-center ${
+                                  selectedParties.has(party.id)
+                                    ? "bg-primary border-primary"
+                                    : "border-muted-foreground"
+                                }`}
+                              >
+                                {selectedParties.has(party.id) && (
+                                  <CheckCircle className="w-3 h-3 text-primary-foreground" />
+                                )}
+                              </div>
+                              <span className="text-sm font-mono">
+                                Party {party.id}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-card border border-border">
+                        <span className="text-sm text-muted-foreground">
+                          Selected: {selectedParties.size} /{" "}
+                          {tssSystem.threshold} required
                         </span>
-                        <div className="text-xl font-mono text-primary">
-                          {tssSystem.totalParties}
+                        <Badge
+                          variant={
+                            selectedParties.size >= tssSystem.threshold
+                              ? "default"
+                              : "outline"
+                          }
+                          className={
+                            selectedParties.size >= tssSystem.threshold
+                              ? "bg-primary"
+                              : ""
+                          }
+                        >
+                          {selectedParties.size >= tssSystem.threshold
+                            ? "Ready"
+                            : "Insufficient"}
+                        </Badge>
+                      </div>
+
+                      <Button
+                        onClick={decryptFile}
+                        disabled={selectedParties.size < tssSystem.threshold}
+                        className="w-full glow-primary"
+                      >
+                        <Unlock className="w-4 h-4 mr-2" />
+                        Decrypt & Download File
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* MESSAGE SIGNING & VERIFICATION */}
+              {tssSystem.masterPrivateKey && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg font-mono">
+                        <MessageSquare className="w-5 h-5 text-accent" />
+                        Message Signing & Verification
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Sign Message */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                          <FileSignature className="w-4 h-4 text-primary" />
+                          Sign a Message
+                        </div>
+                        <Textarea
+                          value={messageToSign}
+                          onChange={(e) => setMessageToSign(e.target.value)}
+                          placeholder="Enter message to sign..."
+                          className="font-mono"
+                        />
+                        <Button
+                          onClick={signMessage}
+                          disabled={!messageToSign.trim()}
+                          className="w-full"
+                        >
+                          <FileSignature className="w-4 h-4 mr-2" />
+                          Sign Message
+                        </Button>
+                        {messageSignature && (
+                          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-muted-foreground">
+                                Signature (hex):
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={copySignature}
+                              >
+                                <Copy className="w-3 h-3" />
+                              </Button>
+                            </div>
+                            <code className="block text-xs font-mono text-primary break-all">
+                              {messageSignature}
+                            </code>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="border-t border-border/50" />
+
+                      {/* Verify Message */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                          <ShieldCheck className="w-4 h-4 text-accent" />
+                          Verify a Signature
+                        </div>
+                        <Textarea
+                          value={messageToVerify}
+                          onChange={(e) => setMessageToVerify(e.target.value)}
+                          placeholder="Enter original message..."
+                          className="font-mono"
+                        />
+                        <Input
+                          value={signatureToVerify}
+                          onChange={(e) => setSignatureToVerify(e.target.value)}
+                          placeholder="Enter signature (hex)..."
+                          className="font-mono"
+                        />
+                        <Button
+                          onClick={verifyMessage}
+                          disabled={
+                            !messageToVerify.trim() || !signatureToVerify.trim()
+                          }
+                          variant="outline"
+                          className="w-full border-accent/50 text-accent hover:bg-accent/10"
+                        >
+                          <ShieldCheck className="w-4 h-4 mr-2" />
+                          Verify Signature
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Sidebar: Output & Info */}
+            <div className="space-y-6">
+              <Card className="border-border/50 bg-card/50 backdrop-blur-sm sticky top-24">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-sm font-mono">
+                    <Terminal className="w-4 h-4 text-primary" />
+                    Output
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {output ? (
+                    <TerminalOutput lines={output.lines} type={output.type} />
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Terminal className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm font-mono">No output yet</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {tssSystem.publicKey && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-mono flex items-center gap-2">
+                        <Shield className="w-4 h-4 text-primary" />
+                        Configuration
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="p-2 rounded bg-black/30">
+                          <span className="text-xs text-muted-foreground">
+                            Total Parties
+                          </span>
+                          <div className="text-xl font-mono text-primary">
+                            {tssSystem.totalParties}
+                          </div>
+                        </div>
+                        <div className="p-2 rounded bg-black/30">
+                          <span className="text-xs text-muted-foreground">
+                            Threshold
+                          </span>
+                          <div className="text-xl font-mono text-accent">
+                            {tssSystem.threshold}
+                          </div>
                         </div>
                       </div>
-                      <div className="p-2 rounded bg-black/30">
-                        <span className="text-xs text-muted-foreground">
-                          Threshold
-                        </span>
-                        <div className="text-xl font-mono text-accent">
-                          {tssSystem.threshold}
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground text-center">
-                      Any {tssSystem.threshold} of {tssSystem.totalParties} can
-                      decrypt
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
+                      <p className="text-xs text-muted-foreground text-center">
+                        Any {tssSystem.threshold} of {tssSystem.totalParties}{" "}
+                        can decrypt
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
 
-            {step !== "setup" && (
-              <Button
-                onClick={reset}
-                variant="outline"
-                className="w-full border-destructive/50 text-destructive hover:bg-destructive/10"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Reset Vault
-              </Button>
-            )}
+              {step !== "setup" && (
+                <Button
+                  onClick={reset}
+                  variant="outline"
+                  className="w-full border-destructive/50 text-destructive hover:bg-destructive/10"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Reset Vault
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </WalletGuard>
   );
 }

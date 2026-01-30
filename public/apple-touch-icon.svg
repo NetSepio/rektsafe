@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <defs>
+    <linearGradient id="glow180" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ff88"/>
+      <stop offset="100%" style="stop-color:#00d4ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="180" height="180" rx="40" fill="#0a0a0f"/>
+  <path d="M90 30 L135 45 L135 90 C135 125 90 150 90 150 C90 150 45 125 45 90 L45 45 Z" 
+        fill="none" stroke="url(#glow180)" stroke-width="8"/>
+  <rect x="72" y="75" width="36" height="28" rx="4" fill="#00ff88"/>
+  <path d="M78 75 V65 A12 12 0 0 1 102 65 V75" fill="none" stroke="#00ff88" stroke-width="5"/>
+</svg>

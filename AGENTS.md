@@ -17,11 +17,18 @@
 rektsafe/
 ├── app/                    # Next.js App Router
 │   ├── vault/             # Crypto vault (TSS app)
+│   │   ├── page.tsx       # Vault page component
+│   │   └── metadata.ts    # Page-specific metadata
 │   ├── privacy/           # Privacy policy page
+│   │   ├── page.tsx
+│   │   └── metadata.ts
 │   ├── terms/             # Terms of service page
+│   │   ├── page.tsx
+│   │   └── metadata.ts
 │   ├── globals.css        # Cypherpunk theme variables
 │   ├── layout.tsx         # Root layout with navbar/footer
-│   └── page.tsx           # Landing page
+│   ├── page.tsx           # Landing page
+│   └── metadata.ts        # Shared metadata configs
 ├── components/            # React components
 │   ├── navbar.tsx         # Navigation with glitch effects
 │   ├── footer.tsx         # Minimal footer
@@ -30,9 +37,21 @@ rektsafe/
 │   ├── how-it-works.tsx   # Process steps
 │   ├── tech-stack.tsx     # Technology showcase
 │   ├── cta.tsx            # Call to action
+│   ├── wallet-provider.tsx # Wallet connection provider
+│   ├── wallet-guard.tsx    # Wallet auth guard for vault
 │   └── ui/                # shadcn/ui components
+├── hooks/                 # Custom React hooks
+│   └── use-sns-name.ts    # SNS domain resolution
 ├── lib/
 │   └── utils.ts           # Utility functions (cn, etc.)
+├── public/                # Static assets
+│   ├── favicon.svg        # Main favicon
+│   ├── favicon-32x32.svg  # Small favicon
+│   ├── apple-touch-icon.svg # Apple touch icon
+│   ├── og-image.svg       # Open Graph image
+│   ├── site.webmanifest   # PWA manifest
+│   ├── robots.txt         # SEO robots
+│   └── sitemap.xml        # SEO sitemap
 ├── .github/workflows/     # GitHub Actions
 │   └── deploy.yml         # Deploy to GitHub Pages
 ├── dist/                  # Build output (excluded from git)
@@ -52,6 +71,7 @@ rektsafe/
 | Animation | Framer Motion |
 | Icons | Lucide React |
 | Crypto | Web Crypto API |
+| Wallet | Reown AppKit + Solana |
 
 ## Theme Colors
 
@@ -179,6 +199,66 @@ Static files are generated in `/dist/`:
 - No keys or data sent to servers
 - Users responsible for key management
 - Uses standard, audited algorithms only
+
+## Wallet Integration
+
+Reown AppKit (formerly WalletConnect) is integrated for Solana wallet connections.
+
+### Supported Wallets
+- Phantom
+- Solflare
+
+### Environment Variables
+
+```bash
+# Required: Get from https://cloud.reown.com
+NEXT_PUBLIC_REOWN_PROJECT_ID=your_project_id
+
+# Optional: Custom Solana RPC endpoint
+NEXT_PUBLIC_SOLANA_RPC=https://api.mainnet-beta.solana.com
+```
+
+See `.env.example` for reference.
+
+### Vault Access Control
+
+The `/vault/` route is protected by `WalletGuard` component:
+- Users must connect a Solana wallet before accessing vault features
+- Wallet address is displayed in the navbar when connected
+- Uses `<appkit-button />` web component for connect/disconnect
+- **SNS Support**: If wallet has a .sol domain, it displays the domain name instead of address
+
+### Components
+
+| Component | Purpose |
+|-----------|---------|
+| `wallet-provider.tsx` | Initializes AppKit with Solana adapter |
+| `wallet-guard.tsx` | Blocks vault access until wallet connected |
+| `<appkit-button />` | Reown's wallet connect button (web component) |
+
+### Hooks
+
+| Hook | Purpose |
+|------|---------|
+| `useSnsName(address)` | Resolves wallet address to SNS (.sol) domain name |
+
+### Usage in Components
+
+```tsx
+import { useAppKitAccount } from "@reown/appkit/react";
+import { useSnsName } from "@/hooks/use-sns-name";
+
+function MyComponent() {
+  const { isConnected, address } = useAppKitAccount();
+  const { snsName, isLoading } = useSnsName(address);
+  
+  if (isConnected) {
+    return <div>Connected: {snsName || address}</div>;
+  }
+  
+  return <appkit-button size="sm" />;
+}
+```
 
 ---
 

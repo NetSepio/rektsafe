@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ff88;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00d4ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff006e;stop-opacity:1" />
+    </linearGradient>
+    <filter id="neon" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="100" height="100" rx="20" fill="#0a0a0f"/>
+  <!-- Shield -->
+  <path d="M50 15 L75 25 L75 50 C75 70 50 85 50 85 C50 85 25 70 25 50 L25 25 Z" 
+        fill="none" 
+        stroke="url(#glow)" 
+        stroke-width="4"
+        filter="url(#neon)"/>
+  <!-- Lock in center -->
+  <rect x="40" y="40" width="20" height="18" rx="3" fill="#00ff88"/>
+  <path d="M45 40 V35 A5 5 0 0 1 55 35 V40" 
+        fill="none" 
+        stroke="#00ff88" 
+        stroke-width="3"
+        filter="url(#neon)"/>
+  <!-- Glitch lines -->
+  <line x1="15" y1="50" x2="25" y2="50" stroke="#ff006e" stroke-width="2" opacity="0.8"/>
+  <line x1="75" y1="50" x2="85" y2="50" stroke="#00d4ff" stroke-width="2" opacity="0.8"/>
+</svg>
