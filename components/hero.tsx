@@ -5,6 +5,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Shield, Lock, Zap, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 function ParticleField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -158,6 +159,7 @@ export function Hero() {
     target: containerRef,
     offset: ["start start", "end start"],
   });
+  const { isConnected } = useAppKitAccount();
 
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
@@ -232,16 +234,18 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <Link href="/vault/">
-            <Button
-              size="lg"
-              className="group bg-primary text-primary-foreground hover:bg-primary/90 glow-primary px-8 py-6 text-lg font-mono"
-            >
-              <Terminal className="w-5 h-5 mr-2" />
-              Initialize
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
+          {!isConnected && (
+            <Link href="/vault/">
+              <Button
+                size="lg"
+                className="group bg-primary text-primary-foreground hover:bg-primary/90 glow-primary px-8 py-6 text-lg font-mono"
+              >
+                <Terminal className="w-5 h-5 mr-2" />
+                Initialize
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          )}
           <a href="#how-it-works">
             <Button
               size="lg"

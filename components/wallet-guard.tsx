@@ -1,18 +1,12 @@
 "use client";
 
-import {
-  useAppKit,
-  useAppKitAccount,
-  useDisconnect,
-} from "@reown/appkit/react";
+import { useAppKitAccount } from "@reown/appkit/react";
 import { useAppKitWallet } from "@reown/appkit-wallet-button/react";
 import { motion } from "framer-motion";
-import { Wallet, Shield, Lock, LogOut, Home, AtSign } from "lucide-react";
+import { Wallet, Shield, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import Link from "next/link";
 import { ReactNode, useState, useEffect } from "react";
-import { useSnsName } from "@/hooks/use-sns-name";
 
 interface WalletGuardProps {
   children: ReactNode;
@@ -238,84 +232,12 @@ function WalletConnectOptions({ onConnect }: { onConnect?: () => void }) {
 
 // Inner component that uses AppKit hooks - only rendered client-side
 function WalletGuardInner({ children }: WalletGuardProps) {
-  const { isConnected, address } = useAppKitAccount();
-  const { disconnect } = useDisconnect();
-  const { snsName, isLoading } = useSnsName(address);
+  const { isConnected } = useAppKitAccount();
 
   if (isConnected) {
-    return (
-      <div className="relative">
-        {/* Connected user bar */}
-        <div className="fixed top-20 left-0 right-0 z-40 px-4">
-          <div className="max-w-7xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center justify-between p-3 rounded-xl bg-background/90 backdrop-blur-xl border border-primary/30 shadow-lg shadow-primary/5"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30">
-                  {snsName ? (
-                    <AtSign className="w-5 h-5 text-primary" />
-                  ) : (
-                    <Wallet className="w-5 h-5 text-primary" />
-                  )}
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
-                    Connected Wallet
-                  </p>
-                  {isLoading ? (
-                    <p className="text-sm font-mono text-muted-foreground animate-pulse">
-                      Resolving...
-                    </p>
-                  ) : snsName ? (
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-primary">
-                        {snsName}
-                      </p>
-                      <span className="text-xs text-muted-foreground font-mono">
-                        ({address?.slice(0, 4)}...{address?.slice(-4)})
-                      </span>
-                    </div>
-                  ) : (
-                    <p className="text-sm font-mono text-primary">
-                      {address?.slice(0, 6)}...{address?.slice(-4)}
-                    </p>
-                  )}
-                </div>
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse ml-2" />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Link href="/">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    <Home className="w-4 h-4 mr-1" />
-                    Home
-                  </Button>
-                </Link>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => disconnect()}
-                  className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <LogOut className="w-4 h-4 mr-1" />
-                  Disconnect
-                </Button>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Add padding to account for the fixed bar */}
-        <div className="pt-16">{children}</div>
-      </div>
-    );
+    // User is connected - render children without the connected bar
+    // (wallet status is now shown in navbar)
+    return <>{children}</>;
   }
 
   return (
