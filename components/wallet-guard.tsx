@@ -18,41 +18,65 @@ interface WalletGuardProps {
   children: ReactNode;
 }
 
+// Check if wallet is installed
+const getWalletInstallUrl = (wallet: string): string | null => {
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isMobile =
+    /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(
+      userAgent,
+    );
+
+  if (wallet === "phantom") {
+    if (isMobile) {
+      return "https://phantom.app/download";
+    }
+    return "https://phantom.app/download";
+  }
+  if (wallet === "solflare") {
+    if (isMobile) {
+      return "https://solflare.com/download";
+    }
+    return "https://solflare.com/download";
+  }
+  return null;
+};
+
+// Check if Phantom is installed
+const isPhantomInstalled = (): boolean => {
+  if (typeof window === "undefined") return false;
+  const phantom = (
+    window as Window & { phantom?: { solana?: { isPhantom?: boolean } } }
+  ).phantom;
+  return phantom?.solana?.isPhantom === true;
+};
+
+// Check if Solflare is installed
+const isSolflareInstalled = (): boolean => {
+  if (typeof window === "undefined") return false;
+  const solflare = (window as Window & { solflare?: { isSolflare?: boolean } })
+    .solflare;
+  return solflare?.isSolflare === true;
+};
+
 // Wallet Connect Options Component
 function WalletConnectOptions({ onConnect }: { onConnect?: () => void }) {
   const [isConnecting, setIsConnecting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  // Direct wallet connections using wallet-button
-  const phantom = useAppKitWallet({
-    namespace: "solana",
-    onSuccess: () => {
-      setIsConnecting(null);
-      setError(null);
-      onConnect?.();
-    },
-    onError: (err: Error) => {
-      setIsConnecting(null);
-      setError(err.message || "Failed to connect");
-      console.error("Phantom connection error:", err);
-    },
+  const [walletStates, setWalletStates] = useState({
+    phantom: { installed: false, checked: false },
+    solflare: { installed: false, checked: false },
   });
 
-  const solflare = useAppKitWallet({
-    namespace: "solana",
-    onSuccess: () => {
-      setIsConnecting(null);
-      setError(null);
-      onConnect?.();
-    },
-    onError: (err: Error) => {
-      setIsConnecting(null);
-      setError(err.message || "Failed to connect");
-      console.error("Solflare connection error:", err);
-    },
-  });
+  // Check wallet installation status on mount
+  useEffect(() => {
+    setWalletStates({
+      phantom: { installed: isPhantomInstalled(), checked: true },
+      solflare: { installed: isSolflareInstalled(), checked: true },
+    });
+  }, []);
 
-  const walletConnect = useAppKitWallet({
+  // Use a single hook instance for all connections
+  const { connect } = useAppKitWallet({
     namespace: "solana",
     onSuccess: () => {
       setIsConnecting(null);
@@ -62,7 +86,7 @@ function WalletConnectOptions({ onConnect }: { onConnect?: () => void }) {
     onError: (err: Error) => {
       setIsConnecting(null);
       setError(err.message || "Failed to connect");
-      console.error("WalletConnect error:", err);
+      console.error("Wallet connection error:", err);
     },
   });
 
@@ -71,13 +95,14 @@ function WalletConnectOptions({ onConnect }: { onConnect?: () => void }) {
   ) => {
     setError(null);
     setIsConnecting(wallet);
+
     try {
-      if (wallet === "phantom") {
-        await phantom.connect("phantom");
-      } else if (wallet === "solflare") {
-        await solflare.connect("solflare");
+      if (wallet === "walletConnect") {
+        await connect("walletConnect");
       } else {
-        await walletConnect.connect("walletConnect");
+        // For Phantom and Solflare, try direct connection
+        // The connect function will handle the specific wallet
+        await connect(wallet);
       }
     } catch (err) {
       setIsConnecting(null);
@@ -86,8 +111,15 @@ function WalletConnectOptions({ onConnect }: { onConnect?: () => void }) {
     }
   };
 
+  const handleInstall = (wallet: string) => {
+    const url = getWalletInstallUrl(wallet);
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-3">
       {error && (
         <div className="w-full max-w-xs p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm text-center">
           {error}
@@ -95,56 +127,80 @@ function WalletConnectOptions({ onConnect }: { onConnect?: () => void }) {
       )}
 
       {/* Phantom Button */}
-      <Button
-        onClick={() => handleConnect("phantom")}
-        disabled={!!isConnecting}
-        className="w-full max-w-xs h-14 text-lg font-mono font-semibold bg-[#AB9FF2] hover:bg-[#9B8FE2] text-white border-0 transition-all duration-300"
-      >
-        {isConnecting === "phantom" ? (
-          <>
-            <div className="w-5 h-5 mr-2 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            Connecting...
-          </>
-        ) : (
-          <>
-            <svg
-              className="w-5 h-5 mr-2"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
-            </svg>
-            Phantom
-          </>
-        )}
-      </Button>
+      {walletStates.phantom.checked && !walletStates.phantom.installed ? (
+        <Button
+          onClick={() => handleInstall("phantom")}
+          className="w-full max-w-xs h-14 text-lg font-mono font-semibold bg-[#AB9FF2] hover:bg-[#9B8FE2] text-white border-0 transition-all duration-300"
+        >
+          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+          </svg>
+          Install Phantom
+        </Button>
+      ) : (
+        <Button
+          onClick={() => handleConnect("phantom")}
+          disabled={!!isConnecting}
+          className="w-full max-w-xs h-14 text-lg font-mono font-semibold bg-[#AB9FF2] hover:bg-[#9B8FE2] text-white border-0 transition-all duration-300"
+        >
+          {isConnecting === "phantom" ? (
+            <>
+              <div className="w-5 h-5 mr-2 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Connecting...
+            </>
+          ) : (
+            <>
+              <svg
+                className="w-5 h-5 mr-2"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+              </svg>
+              Phantom
+            </>
+          )}
+        </Button>
+      )}
 
       {/* Solflare Button */}
-      <Button
-        onClick={() => handleConnect("solflare")}
-        disabled={!!isConnecting}
-        className="w-full max-w-xs h-14 text-lg font-mono font-semibold bg-[#FC4D1C] hover:bg-[#EC3D0C] text-white border-0 transition-all duration-300"
-      >
-        {isConnecting === "solflare" ? (
-          <>
-            <div className="w-5 h-5 mr-2 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            Connecting...
-          </>
-        ) : (
-          <>
-            <svg
-              className="w-5 h-5 mr-2"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
-            Solflare
-          </>
-        )}
-      </Button>
+      {walletStates.solflare.checked && !walletStates.solflare.installed ? (
+        <Button
+          onClick={() => handleInstall("solflare")}
+          className="w-full max-w-xs h-14 text-lg font-mono font-semibold bg-[#FC4D1C] hover:bg-[#EC3D0C] text-white border-0 transition-all duration-300"
+        >
+          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+          </svg>
+          Install Solflare
+        </Button>
+      ) : (
+        <Button
+          onClick={() => handleConnect("solflare")}
+          disabled={!!isConnecting}
+          className="w-full max-w-xs h-14 text-lg font-mono font-semibold bg-[#FC4D1C] hover:bg-[#EC3D0C] text-white border-0 transition-all duration-300"
+        >
+          {isConnecting === "solflare" ? (
+            <>
+              <div className="w-5 h-5 mr-2 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Connecting...
+            </>
+          ) : (
+            <>
+              <svg
+                className="w-5 h-5 mr-2"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+              Solflare
+            </>
+          )}
+        </Button>
+      )}
 
-      {/* WalletConnect Button */}
+      {/* WalletConnect Button - for mobile/other wallets */}
       <Button
         onClick={() => handleConnect("walletConnect")}
         disabled={!!isConnecting}

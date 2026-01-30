@@ -50,6 +50,9 @@ jobs:
       - name: Build Next.js app
         run: pnpm run build
         env:
+          # Reown Project ID from GitHub repository secrets
+          # Get one at: https://cloud.reown.com
+          NEXT_PUBLIC_REOWN_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_REOWN_PROJECT_ID }}
           # Set to empty string for custom domain (e.g., rektsafe.com)
           # Remove or comment out this line if using username.github.io/repo-name
           BASE_PATH: ""
