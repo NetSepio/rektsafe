@@ -205,8 +205,9 @@ Static files are generated in `/dist/`:
 Reown AppKit (formerly WalletConnect) is integrated for Solana wallet connections.
 
 ### Supported Wallets
-- Phantom
-- Solflare
+- Phantom (browser extension)
+- Solflare (browser extension)
+- Other wallets via WalletConnect QR
 
 ### Environment Variables
 
@@ -218,14 +219,15 @@ NEXT_PUBLIC_REOWN_PROJECT_ID=your_project_id
 NEXT_PUBLIC_SOLANA_RPC=https://api.mainnet-beta.solana.com
 ```
 
-See `.env.example` for reference.
+For production deployment, set `NEXT_PUBLIC_REOWN_PROJECT_ID` in GitHub repository secrets. See `.env.example` for reference.
 
 ### Vault Access Control
 
 The `/vault/` route is protected by `WalletGuard` component:
 - Users must connect a Solana wallet before accessing vault features
 - Wallet address is displayed in the navbar when connected
-- Uses `<appkit-button />` web component for connect/disconnect
+- Direct browser extension connection (no QR code modal for installed wallets)
+- Shows "Install" button if wallet extension is not detected
 - **SNS Support**: If wallet has a .sol domain, it displays the domain name instead of address
 
 ### Components
@@ -234,13 +236,21 @@ The `/vault/` route is protected by `WalletGuard` component:
 |-----------|---------|
 | `wallet-provider.tsx` | Initializes AppKit with Solana adapter |
 | `wallet-guard.tsx` | Blocks vault access until wallet connected |
-| `<appkit-button />` | Reown's wallet connect button (web component) |
 
 ### Hooks
 
 | Hook | Purpose |
 |------|---------|
 | `useSnsName(address)` | Resolves wallet address to SNS (.sol) domain name |
+| `useAppKitWallet` | Direct wallet connection from `@reown/appkit-wallet-button/react` |
+
+### Wallet Connection Implementation
+
+The wallet connection uses `useAppKitWallet` hook:
+- Single hook instance handles all wallet connections
+- Detects wallet installation via `window.phantom` and `window.solflare`
+- Direct connection to browser extensions without modal
+- Falls back to WalletConnect QR code for "Other Wallets" option
 
 ### Usage in Components
 
@@ -256,7 +266,7 @@ function MyComponent() {
     return <div>Connected: {snsName || address}</div>;
   }
   
-  return <appkit-button size="sm" />;
+  return <Button>Connect Wallet</Button>;
 }
 ```
 
