@@ -1,7 +1,5 @@
 import type { NextConfig } from "next";
 import webpack from "webpack";
-import CopyPlugin from "copy-webpack-plugin";
-import path from "path";
 
 const nextConfig: NextConfig = {
   output: "export",
@@ -30,9 +28,9 @@ const nextConfig: NextConfig = {
         require.resolve("./lib/browser-polyfills/node-localstorage.ts"),
       // WASM stubs - actual WASM loaded at runtime
       "light_wasm_hasher_bg.wasm":
-        require.resolve("./lib/browser-polyfills/wasm-stub.ts"),
+        require.resolve("./lib/browser-polyfills/wasm-stub.js"),
       "hasher_wasm_simd_bg.wasm":
-        require.resolve("./lib/browser-polyfills/wasm-stub.ts"),
+        require.resolve("./lib/browser-polyfills/wasm-stub.js"),
     };
 
     config.resolve.fallback = {
@@ -52,7 +50,6 @@ const nextConfig: NextConfig = {
       module: false,
       vm: false,
       constants: false,
-      // Node.js specific modules that privacycash uses
       child_process: false,
       worker_threads: false,
       cluster: false,
@@ -77,20 +74,6 @@ const nextConfig: NextConfig = {
         Buffer: ["buffer", "Buffer"],
       }),
     );
-
-    // Copy WASM files to output directory for runtime loading
-    if (!isServer) {
-      config.plugins.push(
-        new CopyPlugin({
-          patterns: [
-            {
-              from: path.join(__dirname, "public/wasm/*.wasm"),
-              to: path.join(__dirname, "dist/_next/static/wasm/[name][ext]"),
-            },
-          ],
-        }),
-      );
-    }
 
     return config;
   },

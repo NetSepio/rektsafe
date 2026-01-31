@@ -94,7 +94,7 @@ export const SUPPORTED_TOKENS = {
   SOL: {
     symbol: "SOL",
     name: "Solana",
-    mint: null,
+    mint: "So11111111111111111111111111111111111111112",
     decimals: 9,
     color: "#00ff88",
     isNative: true,
@@ -113,30 +113,6 @@ export const SUPPORTED_TOKENS = {
     mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
     decimals: 6,
     color: "#ff006e",
-    isNative: false,
-  },
-  ZEC: {
-    symbol: "ZEC",
-    name: "Zcash (Wormhole)",
-    mint: "A7g2V9w5Q4z7J8K3mN6pL1oR5tY2uI9eW0qF3xZ7cV4b",
-    decimals: 8,
-    color: "#f4b728",
-    isNative: false,
-  },
-  ORE: {
-    symbol: "ORE",
-    name: "Ore",
-    mint: "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSyb5",
-    decimals: 9,
-    color: "#ff9500",
-    isNative: false,
-  },
-  stORE: {
-    symbol: "stORE",
-    name: "Staked Ore",
-    mint: "st8i1d8n6k9o3j4l5p7q2r4t6y8u0i1e3w5q7y9u1i3o5",
-    decimals: 9,
-    color: "#a855f7",
     isNative: false,
   },
 } as const;
@@ -283,7 +259,7 @@ export class PrivacyCashSDK {
         transactionSigner: this.transactionSigner,
         lightWasm,
         storage: browserStorage,
-        keyBasePath: "rektsafe",
+        keyBasePath: "/wasm/rektsafe",
       });
 
       return {
@@ -328,7 +304,7 @@ export class PrivacyCashSDK {
         encryptionService: encryptionServiceInstance,
         lightWasm,
         storage: browserStorage,
-        keyBasePath: "rektsafe",
+        keyBasePath: "/wasm/rektsafe",
         recipient,
       });
 
