@@ -97,7 +97,7 @@ const zkSendSteps: Step[] = [
     description:
       "Connect your Solana wallet. Your private key never leaves your device - only a signature is used to derive the encryption key.",
     code: `> connect_wallet()
-> sign_message("Privacy Money account sign in")
+> sign_message("Welcome to RektSafe. For Cypherpunks, By Cypherpunks")
 ✓ Encryption key derived`,
   },
   {

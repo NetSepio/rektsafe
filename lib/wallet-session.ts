@@ -22,19 +22,21 @@ function deriveKeypairFromSignature(signature: Uint8Array): Keypair {
 }
 
 // Initialize wallet session with signature
-export async function initializeWalletSession(
-  walletProvider: {
-    publicKey: PublicKey;
-    signMessage: (message: Uint8Array) => Promise<Uint8Array>;
-  }
-): Promise<WalletSession> {
-  const message = new TextEncoder().encode("Privacy Money account sign in");
+export async function initializeWalletSession(walletProvider: {
+  publicKey: PublicKey;
+  signMessage: (message: Uint8Array) => Promise<Uint8Array>;
+}): Promise<WalletSession> {
+  const message = new TextEncoder().encode(
+    "Welcome to RektSafe. For Cypherpunks, By Cypherpunks",
+  );
 
   let signature: Uint8Array;
   try {
     signature = await walletProvider.signMessage(message);
   } catch (err: any) {
-    throw new Error("Signature request rejected: " + (err.message || "User cancelled"));
+    throw new Error(
+      "Signature request rejected: " + (err.message || "User cancelled"),
+    );
   }
 
   // Handle different signature formats

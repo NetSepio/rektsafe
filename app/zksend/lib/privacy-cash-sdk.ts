@@ -142,7 +142,7 @@ export class PrivacyCashSDK {
 
     // Sign a standard message to derive encryption key
     const encodedMessage = new TextEncoder().encode(
-      "Privacy Money account sign in",
+      "Welcome to RektSafe. For Cypherpunks, By Cypherpunks",
     );
     let signature: Uint8Array;
 
