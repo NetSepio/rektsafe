@@ -6,10 +6,29 @@ declare global {
   }
 }
 
+// Get the base path for the current deployment
+function getBasePath(): string {
+  // For GitHub Pages with subdirectory (e.g., /rektsafe/)
+  // Check if we're on a subpath by looking at the script src
+  const scripts = document.getElementsByTagName("script");
+  for (let i = 0; i < scripts.length; i++) {
+    const src = scripts[i].src;
+    if (src.includes("/_next/")) {
+      // Extract base path from script URL
+      const basePath = src.substring(0, src.indexOf("/_next/"));
+      return basePath;
+    }
+  }
+  return "";
+}
+
 // Set up WASM init functions that fetch from the correct path
 export function initHasherWasm() {
   if (typeof window === "undefined") return;
   if (window.__HASHER_WASM_INIT__) return;
+
+  const basePath = getBasePath();
+  console.log("[Hasher WASM] Base path:", basePath);
 
   // Dynamically import the hasher module and set up WASM loading
   // Using dynamic import to avoid TypeScript module resolution issues
@@ -23,17 +42,31 @@ export function initHasherWasm() {
 
       if (setWasmInit) {
         setWasmInit(() => {
-          return fetch("/wasm/light_wasm_hasher_bg.wasm").then((res) =>
-            res.arrayBuffer(),
-          );
+          const wasmUrl = basePath + "/wasm/light_wasm_hasher_bg.wasm";
+          console.log("[Hasher WASM] Loading SISD from:", wasmUrl);
+          return fetch(wasmUrl).then((res) => {
+            if (!res.ok) {
+              throw new Error(
+                `Failed to load WASM: ${res.status} ${res.statusText}`,
+              );
+            }
+            return res.arrayBuffer();
+          });
         });
       }
 
       if (setWasmSimdInit) {
         setWasmSimdInit(() => {
-          return fetch("/wasm/hasher_wasm_simd_bg.wasm").then((res) =>
-            res.arrayBuffer(),
-          );
+          const wasmUrl = basePath + "/wasm/hasher_wasm_simd_bg.wasm";
+          console.log("[Hasher WASM] Loading SIMD from:", wasmUrl);
+          return fetch(wasmUrl).then((res) => {
+            if (!res.ok) {
+              throw new Error(
+                `Failed to load WASM: ${res.status} ${res.statusText}`,
+              );
+            }
+            return res.arrayBuffer();
+          });
         });
       }
 
