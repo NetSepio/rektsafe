@@ -4,10 +4,10 @@
 
 ## Project Overview
 
-**rektSafe** is a decentralized dead man's switch application for crypto and data inheritance. It uses threshold signature schemes (TSS) to securely pass digital assets to beneficiaries.
+**rektSafe** is a decentralized dead man's switch application for crypto and data inheritance. It uses threshold signature schemes (TSS) to securely pass digital assets to beneficiaries, and now includes private transfers via zkSend.
 
 - **Stack**: Next.js 15 + React 19 + TypeScript + Tailwind CSS
-- **Crypto**: Web Crypto API (Ed25519, AES-256-GCM, SHA-256)
+- **Crypto**: Web Crypto API (Ed25519, AES-256-GCM, SHA-256), Privacy Cash SDK
 - **Theme**: Dark cypherpunk with neon accents
 - **Architecture**: Client-side only, static export (no SSR)
 
@@ -19,12 +19,14 @@ rektsafe/
 │   ├── vault/             # Crypto vault (TSS app)
 │   │   ├── page.tsx       # Vault page component
 │   │   └── metadata.ts    # Page-specific metadata
+│   ├── zksend/            # Private transfers (zkSend)
+│   │   ├── page.tsx       # Main zkSend page
+│   │   ├── components/    # Shield/Send/Unshield/History sections
+│   │   ├── hooks/         # useBalances hook
+│   │   ├── lib/           # Privacy Cash SDK wrapper
+│   │   └── context/       # Transaction context
 │   ├── privacy/           # Privacy policy page
-│   │   ├── page.tsx
-│   │   └── metadata.ts
 │   ├── terms/             # Terms of service page
-│   │   ├── page.tsx
-│   │   └── metadata.ts
 │   ├── globals.css        # Cypherpunk theme variables
 │   ├── layout.tsx         # Root layout with navbar/footer
 │   ├── page.tsx           # Landing page
@@ -34,24 +36,25 @@ rektsafe/
 │   ├── footer.tsx         # Minimal footer
 │   ├── hero.tsx           # Animated hero section
 │   ├── features.tsx       # Feature cards
-│   ├── how-it-works.tsx   # Process steps
-│   ├── tech-stack.tsx     # Technology showcase
-│   ├── cta.tsx            # Call to action
+│   ├── how-it-works.tsx   # Process steps with tabs
 │   ├── wallet-provider.tsx # Wallet connection provider
-│   ├── wallet-guard.tsx    # Wallet auth guard for vault
+│   ├── wallet-session-provider.tsx # Session management
+│   ├── wallet-guard.tsx    # Wallet auth guard
 │   └── ui/                # shadcn/ui components
 ├── hooks/                 # Custom React hooks
 │   └── use-sns-name.ts    # SNS domain resolution
-├── lib/
+├── lib/                   # Utilities and polyfills
+│   ├── browser-polyfills/ # Node.js polyfills
+│   │   ├── hasher-wasm-init.ts   # WASM initialization
+│   │   ├── node-localstorage.ts  # localStorage polyfill
+│   │   └── path.ts               # Path polyfill
+│   ├── wallet-session.ts  # Wallet session management
 │   └── utils.ts           # Utility functions (cn, etc.)
-├── public/                # Static assets
-│   ├── favicon.svg        # Main favicon
-│   ├── favicon-32x32.svg  # Small favicon
-│   ├── apple-touch-icon.svg # Apple touch icon
-│   ├── og-image.svg       # Open Graph image
-│   ├── site.webmanifest   # PWA manifest
-│   ├── robots.txt         # SEO robots
-│   └── sitemap.xml        # SEO sitemap
+├── public/wasm/           # WASM files for ZK proofs
+│   ├── light_wasm_hasher_bg.wasm
+│   ├── hasher_wasm_simd_bg.wasm
+│   ├── rektsafe.wasm
+│   └── rektsafe.zkey
 ├── .github/workflows/     # GitHub Actions
 │   └── deploy.yml         # Deploy to GitHub Pages
 ├── dist/                  # Build output (excluded from git)
@@ -71,6 +74,8 @@ rektsafe/
 | Animation | Framer Motion |
 | Icons | Lucide React |
 | Crypto | Web Crypto API |
+| Privacy | Privacy Cash SDK |
+| ZK Proofs | @lightprotocol/hasher.rs |
 | Wallet | Reown AppKit + Solana |
 
 ## Theme Colors
@@ -90,6 +95,19 @@ rektsafe/
 pnpm install     # Install dependencies
 pnpm dev         # Start dev server (http://localhost:3000)
 pnpm build       # Build static site to /dist
+```
+
+## Environment Variables
+
+```bash
+# Required: Get from https://cloud.reown.com
+NEXT_PUBLIC_REOWN_PROJECT_ID=your_project_id
+
+# Required: Helius RPC for Solana
+NEXT_PUBLIC_HELIUS_RPC=https://mainnet.helius-rpc.com/?api-key=your_key
+
+# Optional: Fallback Solana RPC
+NEXT_PUBLIC_SOLANA_RPC=https://api.mainnet-beta.solana.com
 ```
 
 ## Deployment
@@ -157,6 +175,7 @@ const nextConfig = {
 |-------|-------------|
 | `/` | Landing page |
 | `/vault/` | Crypto vault - TSS app |
+| `/zksend/` | Private transfers - zkSend app |
 | `/privacy/` | Privacy policy |
 | `/terms/` | Terms of service |
 
@@ -165,9 +184,11 @@ const nextConfig = {
 Static files are generated in `/dist/`:
 - `index.html` - Home page
 - `vault/index.html` - Crypto vault
+- `zksend/index.html` - Private transfers
 - `privacy/index.html` - Privacy page
 - `terms/index.html` - Terms page
 - `_next/` - JS/CSS assets
+- `wasm/` - WASM files for ZK proofs
 
 **Note**: `dist/` is excluded from git (see .gitignore)
 
@@ -193,12 +214,18 @@ Static files are generated in `/dist/`:
 - No API routes (client-side only)
 - All dynamic routes must be pre-rendered
 
+### WASM loading errors
+- Ensure WASM files are in `public/wasm/`
+- Check `keyBasePath` in SDK calls uses correct path
+- For GitHub Pages, path resolution happens in `hasher-wasm-init.ts`
+
 ## Security Considerations
 
 - All crypto happens client-side via Web Crypto API
 - No keys or data sent to servers
 - Users responsible for key management
 - Uses standard, audited algorithms only
+- Privacy Cash SDK for ZK-based privacy
 
 ## Wallet Integration
 
@@ -209,67 +236,104 @@ Reown AppKit (formerly WalletConnect) is integrated for Solana wallet connection
 - Solflare (browser extension)
 - Other wallets via WalletConnect QR
 
-### Environment Variables
+### Wallet Session
 
-```bash
-# Required: Get from https://cloud.reown.com
-NEXT_PUBLIC_REOWN_PROJECT_ID=your_project_id
+The app uses a wallet session system for zkSend:
 
-# Optional: Custom Solana RPC endpoint
-NEXT_PUBLIC_SOLANA_RPC=https://api.mainnet-beta.solana.com
+1. User connects wallet → signs message once
+2. Signature derives encryption key via `EncryptionService`
+3. Session persists across navigation (in-memory)
+4. No need to sign again for shield/send/unshield operations
+
+**Signing Message:**
 ```
-
-For production deployment, set `NEXT_PUBLIC_REOWN_PROJECT_ID` in GitHub repository secrets. See `.env.example` for reference.
-
-### Vault Access Control
-
-The `/vault/` route is protected by `WalletGuard` component:
-- Users must connect a Solana wallet before accessing vault features
-- Wallet address is displayed in the navbar when connected
-- Direct browser extension connection (no QR code modal for installed wallets)
-- Shows "Install" button if wallet extension is not detected
-- **SNS Support**: If wallet has a .sol domain, it displays the domain name instead of address
+Welcome to RektSafe. For Cypherpunks, By Cypherpunks
+```
 
 ### Components
 
 | Component | Purpose |
 |-----------|---------|
 | `wallet-provider.tsx` | Initializes AppKit with Solana adapter |
-| `wallet-guard.tsx` | Blocks vault access until wallet connected |
+| `wallet-session-provider.tsx` | Manages wallet session state |
+| `wallet-guard.tsx` | Blocks access until wallet connected & session initialized |
 
 ### Hooks
 
 | Hook | Purpose |
 |------|---------|
 | `useSnsName(address)` | Resolves wallet address to SNS (.sol) domain name |
-| `useAppKitWallet` | Direct wallet connection from `@reown/appkit-wallet-button/react` |
-
-### Wallet Connection Implementation
-
-The wallet connection uses `useAppKitWallet` hook:
-- Single hook instance handles all wallet connections
-- Detects wallet installation via `window.phantom` and `window.solflare`
-- Direct connection to browser extensions without modal
-- Falls back to WalletConnect QR code for "Other Wallets" option
+| `useWalletSession()` | Access wallet session state and initialization |
 
 ### Usage in Components
 
 ```tsx
 import { useAppKitAccount } from "@reown/appkit/react";
-import { useSnsName } from "@/hooks/use-sns-name";
+import { useWalletSession } from "@/components/wallet-session-provider";
 
 function MyComponent() {
   const { isConnected, address } = useAppKitAccount();
-  const { snsName, isLoading } = useSnsName(address);
+  const { isInitialized, isLoading } = useWalletSession();
   
-  if (isConnected) {
-    return <div>Connected: {snsName || address}</div>;
+  if (isConnected && isInitialized) {
+    return <div>Ready for private transfers</div>;
   }
   
   return <Button>Connect Wallet</Button>;
 }
 ```
 
+## Privacy Cash SDK Integration
+
+### Overview
+The app integrates `privacycash` SDK for private transactions on Solana.
+
+### Supported Tokens
+- **SOL** - Native Solana
+- **USDC** - `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`
+- **USDT** - `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB`
+
+### SDK Wrapper
+Located at `app/zksend/lib/privacy-cash-sdk.ts`:
+
+```typescript
+// Initialize with signature
+await privacyCashSDK.initializeWithSignature(signature);
+privacyCashSDK.setWalletAddress(address);
+privacyCashSDK.setTransactionSigner(signTransaction);
+
+// Operations
+await privacyCashSDK.deposit(lamports);
+await privacyCashSDK.withdraw(lamports, recipient);
+await privacyCashSDK.getPrivateBalance();
+```
+
+### Required WASM Files
+- `light_wasm_hasher_bg.wasm` - Hasher for ZK proofs (SISD)
+- `hasher_wasm_simd_bg.wasm` - Hasher for ZK proofs (SIMD)
+- `rektsafe.wasm` - Circuit for proof generation
+- `rektsafe.zkey` - Proving key
+
+### Browser Polyfills
+
+The SDK requires Node.js modules that need polyfills:
+
+| Module | Polyfill Location |
+|--------|-------------------|
+| `path` | `lib/browser-polyfills/path.ts` |
+| `node-localstorage` | `lib/browser-polyfills/node-localstorage.ts` |
+| `fs`, `os`, etc. | `fallback: false` in webpack config |
+
+### Key Components
+
+| Component | Purpose |
+|-----------|---------|
+| `shield-section.tsx` | Deposit SOL into privacy pool |
+| `send-section.tsx` | Send private transfers |
+| `unshield-section.tsx` | Withdraw from privacy pool |
+| `balance-card.tsx` | Display public/private balances |
+| `history-section.tsx` | Transaction history |
+
 ---
 
-Last updated: January 2026
+Last updated: February 2026

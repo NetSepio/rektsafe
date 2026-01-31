@@ -14,6 +14,7 @@ A decentralized, client-only dead man's switch that safely passes your crypto, f
 
 - **🔐 Threshold Signatures (TSS)** - Split secrets across multiple parties
 - **🔒 Zero-Knowledge Encryption** - AES-256-GCM, client-side only
+- **🕵️ Private Transfers** - Shield, send, and unshield assets via zkSend
 - **⏰ Dead Man's Switch** - Automated inactivity timers
 - **👥 Beneficiary System** - Designate trusted guardians
 - **📁 File Encryption** - Secure any file type
@@ -38,6 +39,8 @@ A decentralized, client-only dead man's switch that safely passes your crypto, f
 | **Framer Motion** | Animations |
 | **pnpm** | Package manager |
 | **Web Crypto API** | Cryptography (Ed25519, AES-256-GCM, SHA-256) |
+| **Privacy Cash SDK** | Private transactions on Solana |
+| **@lightprotocol/hasher.rs** | ZK proof generation |
 
 ## 📁 Project Structure
 
@@ -45,6 +48,7 @@ A decentralized, client-only dead man's switch that safely passes your crypto, f
 rektsafe/
 ├── app/                   # Next.js app directory
 │   ├── vault/            # Crypto vault (TSS app)
+│   ├── zksend/           # Private transfers (zkSend)
 │   ├── privacy/          # Privacy policy page
 │   ├── terms/            # Terms of service page
 │   ├── globals.css       # Global styles + cypherpunk theme
@@ -57,12 +61,16 @@ rektsafe/
 │   ├── features.tsx      # Feature cards
 │   ├── how-it-works.tsx  # Process steps
 │   ├── tech-stack.tsx    # Technology showcase
-│   ├── cta.tsx           # Call to action
+│   ├── wallet-guard.tsx  # Wallet auth guard
+│   ├── wallet-session-provider.tsx  # Session management
 │   └── ui/               # shadcn/ui components
+├── lib/                  # Utilities and polyfills
+│   ├── browser-polyfills/ # Node.js polyfills for browser
+│   ├── wallet-session.ts  # Wallet session management
+│   └── utils.ts          # Utility functions
+├── public/wasm/          # WASM files for ZK proofs
 ├── .github/workflows/    # GitHub Actions
 │   └── deploy.yml        # Deploy to GitHub Pages
-├── lib/
-│   └── utils.ts          # Utility functions
 └── package.json
 ```
 
@@ -72,6 +80,21 @@ rektsafe/
 
 - Node.js 18+
 - pnpm (install via `npm install -g pnpm`)
+
+### Environment Variables
+
+Create a `.env` file:
+
+```bash
+# Required: Get from https://cloud.reown.com
+NEXT_PUBLIC_REOWN_PROJECT_ID=your_project_id
+
+# Required: Get from https://helius.dev
+NEXT_PUBLIC_HELIUS_RPC=https://mainnet.helius-rpc.com/?api-key=your_key
+
+# Optional: Custom Solana RPC fallback
+NEXT_PUBLIC_SOLANA_RPC=https://api.mainnet-beta.solana.com
+```
 
 ### Installation
 
@@ -103,6 +126,7 @@ Push to `main` branch triggers automatic deployment via GitHub Actions.
 - **Client-Side Only**: All crypto operations happen in your browser
 - **Zero Knowledge**: We never see your keys or data
 - **Standard Primitives**: Ed25519, AES-256-GCM, SHA-256 via Web Crypto API
+- **ZK Privacy**: Privacy Cash SDK for anonymous transactions
 - **Open Source**: Fully auditable code
 
 ⚠️ **Warning**: This is experimental software. Use at your own risk. Always test thoroughly before entrusting valuable assets.
@@ -111,6 +135,7 @@ Push to `main` branch triggers automatic deployment via GitHub Actions.
 
 - **Home** (`/`) - Landing page with features and how it works
 - **Vault** (`/vault/`) - Interactive TSS encryption/decryption app
+- **zkSend** (`/zksend/`) - Private asset shielding and transfers
 - **Privacy** (`/privacy/`) - Privacy policy
 - **Terms** (`/terms/`) - Terms of service
 
