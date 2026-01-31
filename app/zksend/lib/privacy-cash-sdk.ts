@@ -2,13 +2,13 @@
 
 import { Connection, PublicKey } from "@solana/web3.js";
 import { initHasherWasm } from "@/lib/browser-polyfills/hasher-wasm-init";
+// @ts-ignore - No type declarations for this module
+import * as hasherModule from "@lightprotocol/hasher.rs";
 
-// Import hasher module with proper typing
-const getHasherModule = () => {
-  if (typeof window === "undefined")
-    return Promise.resolve({ WasmFactory: null });
-  // @ts-ignore - No type declarations for this module
-  return import("@lightprotocol/hasher.rs");
+// Get WasmFactory from the module
+const getWasmFactory = () => {
+  if (typeof window === "undefined") return null;
+  return hasherModule.WasmFactory || null;
 };
 
 // Browser storage for Privacy Cash SDK
@@ -228,7 +228,7 @@ export class PrivacyCashSDK {
 
     try {
       const { getUtxos } = await import("privacycash/utils");
-      const { WasmFactory } = await getHasherModule();
+      const WasmFactory = getWasmFactory();
       if (!WasmFactory) throw new Error("Hasher module not available");
       const lightWasm = await WasmFactory.getInstance();
 
@@ -270,7 +270,7 @@ export class PrivacyCashSDK {
 
     try {
       const { deposit } = await import("privacycash/utils");
-      const { WasmFactory } = await getHasherModule();
+      const WasmFactory = getWasmFactory();
       if (!WasmFactory) throw new Error("Hasher module not available");
       const lightWasm = await WasmFactory.getInstance();
       const publicKey = new PublicKey(this.walletAddress);
@@ -313,7 +313,7 @@ export class PrivacyCashSDK {
 
     try {
       const { withdraw } = await import("privacycash/utils");
-      const { WasmFactory } = await getHasherModule();
+      const WasmFactory = getWasmFactory();
       if (!WasmFactory) throw new Error("Hasher module not available");
       const lightWasm = await WasmFactory.getInstance();
       const publicKey = new PublicKey(this.walletAddress);

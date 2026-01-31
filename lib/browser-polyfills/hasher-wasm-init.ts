@@ -1,4 +1,6 @@
 // Initialize @lightprotocol/hasher.rs with proper WASM loading for browser
+// @ts-ignore - No type declarations for this module
+import * as hasherModule from "@lightprotocol/hasher.rs";
 
 declare global {
   interface Window {
@@ -30,52 +32,44 @@ export function initHasherWasm() {
   const basePath = getBasePath();
   console.log("[Hasher WASM] Base path:", basePath);
 
-  // Dynamically import the hasher module and set up WASM loading
-  // Using dynamic import to avoid TypeScript module resolution issues
-  const importHasher = new Function(
-    "return import('@lightprotocol/hasher.rs')",
-  ) as () => Promise<any>;
+  try {
+    const { setWasmInit, setWasmSimdInit } = hasherModule;
 
-  importHasher()
-    .then((hasherModule: any) => {
-      const { setWasmInit, setWasmSimdInit } = hasherModule;
-
-      if (setWasmInit) {
-        setWasmInit(() => {
-          const wasmUrl = basePath + "/wasm/light_wasm_hasher_bg.wasm";
-          console.log("[Hasher WASM] Loading SISD from:", wasmUrl);
-          return fetch(wasmUrl).then((res) => {
-            if (!res.ok) {
-              throw new Error(
-                `Failed to load WASM: ${res.status} ${res.statusText}`,
-              );
-            }
-            return res.arrayBuffer();
-          });
+    if (setWasmInit) {
+      setWasmInit(() => {
+        const wasmUrl = basePath + "/wasm/light_wasm_hasher_bg.wasm";
+        console.log("[Hasher WASM] Loading SISD from:", wasmUrl);
+        return fetch(wasmUrl).then((res) => {
+          if (!res.ok) {
+            throw new Error(
+              `Failed to load WASM: ${res.status} ${res.statusText}`,
+            );
+          }
+          return res.arrayBuffer();
         });
-      }
+      });
+    }
 
-      if (setWasmSimdInit) {
-        setWasmSimdInit(() => {
-          const wasmUrl = basePath + "/wasm/hasher_wasm_simd_bg.wasm";
-          console.log("[Hasher WASM] Loading SIMD from:", wasmUrl);
-          return fetch(wasmUrl).then((res) => {
-            if (!res.ok) {
-              throw new Error(
-                `Failed to load WASM: ${res.status} ${res.statusText}`,
-              );
-            }
-            return res.arrayBuffer();
-          });
+    if (setWasmSimdInit) {
+      setWasmSimdInit(() => {
+        const wasmUrl = basePath + "/wasm/hasher_wasm_simd_bg.wasm";
+        console.log("[Hasher WASM] Loading SIMD from:", wasmUrl);
+        return fetch(wasmUrl).then((res) => {
+          if (!res.ok) {
+            throw new Error(
+              `Failed to load WASM: ${res.status} ${res.statusText}`,
+            );
+          }
+          return res.arrayBuffer();
         });
-      }
+      });
+    }
 
-      window.__HASHER_WASM_INIT__ = true;
-      console.log("[Hasher WASM] Initialized successfully");
-    })
-    .catch((err: any) => {
-      console.error("[Hasher WASM] Failed to initialize:", err);
-    });
+    window.__HASHER_WASM_INIT__ = true;
+    console.log("[Hasher WASM] Initialized successfully");
+  } catch (err: any) {
+    console.error("[Hasher WASM] Failed to initialize:", err);
+  }
 }
 
 export default initHasherWasm;
