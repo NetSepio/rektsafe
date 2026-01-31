@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Unlock,
@@ -35,7 +35,7 @@ export function UnshieldSection() {
   const { address } = useAppKitAccount();
   const { addTransaction, updateTransaction } = useTransactions();
   const { isInitialized: isSessionInitialized } = useWalletSession();
-  const { tokens, privateTokens, refresh, isSDKInitialized } = useBalances();
+  const { tokens, privateTokens, refresh } = useBalances();
 
   const [selectedToken, setSelectedToken] = useState<TokenSymbol | null>(null);
   const [amount, setAmount] = useState("");
@@ -55,6 +55,12 @@ export function UnshieldSection() {
     : null;
 
   const privateBalance = currentToken?.privateBalance || 0;
+
+  useEffect(() => {
+    if (address) {
+      setRecipient(address);
+    }
+  }, [address]);
 
   const handleMax = () => {
     setAmount(privateBalance.toString());
@@ -124,32 +130,8 @@ export function UnshieldSection() {
     });
 
     try {
-      // Initialize SDK from session if not already initialized
-      if (!isSDKInitialized) {
-        await privacyCashSDK.initializeFromSession();
-      }
-
-      let result;
-
-      if (currentToken.isNative) {
-        // Withdraw SOL using SDK
-        const lamports = Math.floor(parseFloat(amount) * 1e9);
-        result = await privacyCashSDK.withdraw(lamports, recipient);
-      } else if (selectedToken === "USDC") {
-        // Withdraw USDC using SDK
-        const baseUnits = Math.floor(parseFloat(amount) * 1e6);
-        result = await privacyCashSDK.withdrawUSDC(baseUnits, recipient);
-      } else {
-        // Withdraw SPL token using SDK
-        const baseUnits = Math.floor(
-          parseFloat(amount) * Math.pow(10, currentToken.decimals),
-        );
-        result = await privacyCashSDK.withdrawSPL(
-          baseUnits,
-          currentToken.mint!,
-          recipient,
-        );
-      }
+      const lamports = Math.floor(parseFloat(amount) * 1e9);
+      const result = await privacyCashSDK.withdraw(lamports, recipient);
 
       updateTransaction(txId, {
         status: "confirmed",
@@ -178,7 +160,7 @@ export function UnshieldSection() {
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg font-mono">
-          <Unlock className="w-5 h-5 text-cyan-400" />
+          <Unlock className="w-5 h-5 text-primary" />
           Unshield Assets
         </CardTitle>
       </CardHeader>
@@ -188,7 +170,7 @@ export function UnshieldSection() {
           <div className="p-4 rounded-xl bg-muted/30">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm text-muted-foreground font-mono">
-                Balance Overview
+                Available Private Balance
               </span>
               <div
                 className="px-2 py-1 rounded text-xs font-bold"
@@ -200,28 +182,14 @@ export function UnshieldSection() {
                 {currentToken.symbol}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="flex items-center gap-2 text-xs text-primary mb-1">
-                  <Shield className="w-3.5 h-3.5" />
-                  Private (Before)
-                </div>
-                <div className="text-lg font-mono font-semibold text-primary">
-                  {privateBalance.toFixed(4)}
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                  <Wallet className="w-3.5 h-3.5" />
-                  Private (After)
-                </div>
-                <div className="text-lg font-mono font-semibold text-foreground">
-                  {Math.max(
-                    0,
-                    privateBalance - parseFloat(amount || "0"),
-                  ).toFixed(4)}
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-primary" />
+              <span className="text-2xl font-mono font-semibold text-primary">
+                {privateBalance.toFixed(4)}
+              </span>
+              <span className="text-muted-foreground">
+                {currentToken.symbol}
+              </span>
             </div>
           </div>
         )}
@@ -229,7 +197,7 @@ export function UnshieldSection() {
         {/* Asset Selector */}
         <div className="space-y-2">
           <label className="text-sm text-muted-foreground font-mono">
-            Asset to Unshield
+            Select Asset to Unshield
           </label>
           <div className="relative">
             <button
@@ -258,7 +226,7 @@ export function UnshieldSection() {
                 </div>
               ) : (
                 <span className="text-muted-foreground">
-                  Choose private asset...
+                  Choose an asset...
                 </span>
               )}
               <ChevronDown
@@ -276,9 +244,7 @@ export function UnshieldSection() {
               >
                 {privateTokens.length === 0 ? (
                   <div className="p-4 text-center text-muted-foreground text-sm">
-                    No tokens with private balance available.
-                    <br />
-                    Shield some assets first.
+                    No private balance available
                   </div>
                 ) : (
                   privateTokens.map((token) => (
@@ -326,6 +292,32 @@ export function UnshieldSection() {
           </div>
         </div>
 
+        {/* Recipient Input */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-sm text-muted-foreground font-mono">
+              Recipient Address
+            </label>
+            {address && (
+              <button
+                onClick={handleUseConnectedWallet}
+                className="text-xs text-primary hover:text-primary/80 transition-colors"
+              >
+                Use my wallet
+              </button>
+            )}
+          </div>
+          <Input
+            value={recipient}
+            onChange={(e) => handleRecipientChange(e.target.value)}
+            placeholder="Enter Solana address..."
+            className="h-14 font-mono text-sm"
+          />
+          {recipientError && (
+            <p className="text-xs text-destructive">{recipientError}</p>
+          )}
+        </div>
+
         {/* Amount Input */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -333,8 +325,8 @@ export function UnshieldSection() {
               Amount to Unshield
             </label>
             {currentToken && (
-              <span className="text-xs text-primary">
-                Private: {privateBalance.toFixed(4)} {currentToken.symbol}
+              <span className="text-xs text-muted-foreground">
+                Available: {privateBalance.toFixed(4)} {currentToken.symbol}
               </span>
             )}
           </div>
@@ -359,46 +351,18 @@ export function UnshieldSection() {
           </div>
         </div>
 
-        {/* Recipient Address */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-sm text-muted-foreground font-mono">
-              Recipient Address
-            </label>
-            <button
-              onClick={handleUseConnectedWallet}
-              className="text-xs text-primary hover:underline flex items-center gap-1"
-            >
-              <Wallet className="w-3 h-3" />
-              Use my wallet
-            </button>
-          </div>
-          <Input
-            value={recipient}
-            onChange={(e) => handleRecipientChange(e.target.value)}
-            placeholder="Enter Solana address..."
-            className={`h-14 font-mono text-sm ${
-              recipientError ? "border-destructive" : ""
-            }`}
-          />
-          {recipientError && (
-            <p className="text-xs text-destructive">{recipientError}</p>
-          )}
-        </div>
-
-        {/* Fee Info */}
-        <div className="p-4 rounded-xl bg-muted/30 space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground font-mono">
-              Withdrawal Fee
-            </span>
-            <span className="text-foreground font-mono">~0.001 SOL</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground font-mono">
-              Relayer Cost
-            </span>
-            <span className="text-foreground font-mono">~0.0005 SOL</span>
+        {/* Info Box */}
+        <div className="p-4 rounded-xl bg-muted/30">
+          <div className="flex items-start gap-3">
+            <Wallet className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm text-foreground font-medium">Unshielding</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Withdraw your assets from the privacy pool back to a regular
+                Solana address. The recipient will receive clean, unlinked
+                funds.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -414,10 +378,7 @@ export function UnshieldSection() {
             !recipient ||
             !!recipientError
           }
-          className="w-full h-14 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold"
-          style={{
-            boxShadow: "0 0 20px rgba(0, 212, 255, 0.3)",
-          }}
+          className="w-full h-14 glow-primary"
         >
           {isLoading ? (
             <>

@@ -28,7 +28,7 @@ export interface Balances {
 export function useBalances() {
   const { address, isConnected } = useAppKitAccount();
   const { walletProvider } = useAppKitProvider<Provider>("solana");
-  const { isInitialized: isSessionInitialized, session } = useWalletSession();
+  const { isInitialized: isSessionInitialized } = useWalletSession();
   const [balances, setBalances] = useState<Balances>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSDKInitialized, setIsSDKInitialized] = useState(false);
@@ -53,25 +53,34 @@ export function useBalances() {
     return initial;
   }, []);
 
-  // Initialize SDK from wallet session
+  // Initialize SDK with wallet provider for transaction signing
   const initializeSDK = useCallback(async () => {
-    if (!address || initializationAttempted.current || !isSessionInitialized) {
+    if (
+      !address ||
+      initializationAttempted.current ||
+      !isSessionInitialized ||
+      !walletProvider
+    ) {
       return false;
     }
 
     try {
       initializationAttempted.current = true;
 
-      // Use the session's derived keypair to initialize SDK
-      await privacyCashSDK.initializeFromSession();
-      setIsSDKInitialized(true);
-      return true;
+      // Set up transaction signer using wallet adapter
+      privacyCashSDK.setWalletAddress(address);
+      privacyCashSDK.setTransactionSigner(async (tx: any) => {
+        return await walletProvider.signTransaction(tx);
+      });
+
+      setIsSDKInitialized(privacyCashSDK.isInitialized());
+      return privacyCashSDK.isInitialized();
     } catch (err) {
       console.warn("SDK initialization failed:", err);
       setIsSDKInitialized(false);
       return false;
     }
-  }, [address, isSessionInitialized]);
+  }, [address, isSessionInitialized, walletProvider]);
 
   const fetchBalances = useCallback(async () => {
     if (!isConnected || !address) {
@@ -118,11 +127,13 @@ export function useBalances() {
       if (sdkReady) {
         // Fetch private balances
         const privateBalancePromises = Object.entries(SUPPORTED_TOKENS).map(
-          async ([symbol]) => {
+          async ([symbol, config]) => {
             const tokenSymbol = symbol as TokenSymbol;
-            const privateBal =
-              await privacyCashSDK.getPrivateBalanceForToken(tokenSymbol);
-            newBalances[tokenSymbol].privateBalance = privateBal;
+            if (config.isNative) {
+              const privateBal = await privacyCashSDK.getPrivateBalance();
+              newBalances[tokenSymbol].privateBalance = privateBal;
+            }
+            // TODO: Add support for private SPL token balances
           },
         );
         await Promise.all(privateBalancePromises);
@@ -141,11 +152,11 @@ export function useBalances() {
     fetchBalances();
   }, [fetchBalances]);
 
-  // Reset initialization flag when wallet or session changes
+  // Reset initialization flag when wallet changes
   useEffect(() => {
     initializationAttempted.current = false;
     setIsSDKInitialized(false);
-  }, [address, session?.initializedAt]);
+  }, [address]);
 
   const refresh = useCallback(() => {
     fetchBalances();
@@ -182,7 +193,6 @@ export function useBalances() {
     isLoading,
     error,
     isSDKInitialized,
-    walletProvider,
     refresh,
   };
 }

@@ -74,7 +74,7 @@ export function BalanceCard() {
                 <TooltipTrigger asChild>
                   <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 text-muted-foreground">
                     <Info className="w-3.5 h-3.5" />
-                    <span className="text-xs">Privacy Cash SDK</span>
+                    <span className="text-xs">Privacy Cash</span>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">

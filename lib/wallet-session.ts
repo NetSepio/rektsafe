@@ -1,25 +1,18 @@
 "use client";
 
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 
-// Wallet session for storing derived keypair across page navigation
+// Wallet session for storing signature across page navigation
 // This stays in memory for the session (lost on page refresh for security)
 
 export interface WalletSession {
   publicKey: PublicKey;
   address: string;
-  derivedKeypair: Keypair;
   signature: Uint8Array;
   initializedAt: number;
 }
 
 let currentSession: WalletSession | null = null;
-
-// Derive keypair from signature (deterministic)
-function deriveKeypairFromSignature(signature: Uint8Array): Keypair {
-  const seed = signature.slice(0, 32);
-  return Keypair.fromSeed(seed);
-}
 
 // Initialize wallet session with signature
 export async function initializeWalletSession(walletProvider: {
@@ -27,7 +20,7 @@ export async function initializeWalletSession(walletProvider: {
   signMessage: (message: Uint8Array) => Promise<Uint8Array>;
 }): Promise<WalletSession> {
   const message = new TextEncoder().encode(
-    "Welcome to RektSafe. For Cypherpunks, By Cypherpunks",
+    "Welcome to RektSafe. For Cypherpunks, By Cypherpunks! \n\nPowered by NetSepio",
   );
 
   let signature: Uint8Array;
@@ -50,12 +43,9 @@ export async function initializeWalletSession(walletProvider: {
     throw new Error("Invalid signature format");
   }
 
-  const derivedKeypair = deriveKeypairFromSignature(signature);
-
   currentSession = {
     publicKey: walletProvider.publicKey,
     address: walletProvider.publicKey.toBase58(),
-    derivedKeypair,
     signature,
     initializedAt: Date.now(),
   };
@@ -68,6 +58,11 @@ export function getWalletSession(): WalletSession | null {
   return currentSession;
 }
 
+// Get signature from session
+export function getSessionSignature(): Uint8Array | null {
+  return currentSession?.signature || null;
+}
+
 // Clear session (e.g., on disconnect)
 export function clearWalletSession(): void {
   currentSession = null;
@@ -76,9 +71,4 @@ export function clearWalletSession(): void {
 // Check if session is valid for a given wallet address
 export function isSessionValidForWallet(address: string): boolean {
   return currentSession !== null && currentSession.address === address;
-}
-
-// Get derived keypair if session exists
-export function getDerivedKeypair(): Keypair | null {
-  return currentSession?.derivedKeypair || null;
 }

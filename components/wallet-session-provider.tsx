@@ -16,8 +16,10 @@ import {
   getWalletSession,
   clearWalletSession,
   isSessionValidForWallet,
+  getSessionSignature,
   WalletSession,
 } from "@/lib/wallet-session";
+import { privacyCashSDK } from "@/app/zksend/lib/privacy-cash-sdk";
 
 interface WalletSessionContextType {
   session: WalletSession | null;
@@ -28,9 +30,9 @@ interface WalletSessionContextType {
   clearSession: () => void;
 }
 
-const WalletSessionContext = createContext<WalletSessionContextType | undefined>(
-  undefined
-);
+const WalletSessionContext = createContext<
+  WalletSessionContextType | undefined
+>(undefined);
 
 export function WalletSessionProvider({ children }: { children: ReactNode }) {
   const { isConnected, address } = useAppKitAccount();
@@ -101,6 +103,11 @@ export function WalletSessionProvider({ children }: { children: ReactNode }) {
       };
 
       const newSession = await initializeWalletSession(provider);
+
+      // Initialize Privacy Cash SDK with the signature
+      await privacyCashSDK.initializeWithSignature(newSession.signature);
+      privacyCashSDK.setWalletAddress(newSession.address);
+
       setSession(newSession);
       setIsInitialized(true);
     } catch (err: any) {
@@ -139,7 +146,7 @@ export function useWalletSession() {
   const context = useContext(WalletSessionContext);
   if (context === undefined) {
     throw new Error(
-      "useWalletSession must be used within a WalletSessionProvider"
+      "useWalletSession must be used within a WalletSessionProvider",
     );
   }
   return context;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Shield,
@@ -11,21 +11,16 @@ import {
   ExternalLink,
   Wallet,
   ArrowRightLeft,
-  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
-import type { Provider } from "@reown/appkit-adapter-solana";
 import { useTransactions } from "../context/transaction-context";
 import { useBalances } from "../hooks/use-balances";
 import { useWalletSession } from "@/components/wallet-session-provider";
 import { privacyCashSDK, type TokenSymbol } from "../lib/privacy-cash-sdk";
 
 export function ShieldSection() {
-  const { address } = useAppKitAccount();
-  const { walletProvider } = useAppKitProvider<Provider>("solana");
   const { addTransaction, updateTransaction } = useTransactions();
   const { isInitialized: isSessionInitialized } = useWalletSession();
   const { tokens, shieldableTokens, refresh, isSDKInitialized } = useBalances();
@@ -34,30 +29,11 @@ export function ShieldSection() {
   const [amount, setAmount] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isFunding, setIsFunding] = useState(false);
-  const [derivedKeypairBalance, setDerivedKeypairBalance] = useState<
-    number | null
-  >(null);
-  const [derivedKeypairAddress, setDerivedKeypairAddress] = useState<
-    string | null
-  >(null);
   const [status, setStatus] = useState<{
-    type: "success" | "error" | "info" | null;
+    type: "success" | "error" | null;
     message: string;
     txSignature?: string;
   }>({ type: null, message: "" });
-
-  // Check derived keypair balance on mount
-  useEffect(() => {
-    if (isSessionInitialized) {
-      const addr = privacyCashSDK.getDerivedKeypairAddress();
-      setDerivedKeypairAddress(addr);
-
-      privacyCashSDK.getDerivedKeypairBalance().then((balance) => {
-        setDerivedKeypairBalance(balance);
-      });
-    }
-  }, [isSessionInitialized]);
 
   // Get current token data
   const currentToken = selectedToken
@@ -69,47 +45,6 @@ export function ShieldSection() {
   const handleMax = () => {
     setAmount(publicBalance.toString());
   };
-
-  const handleFundKeypair = async () => {
-    if (!walletProvider || !address) return;
-
-    setIsFunding(true);
-    setStatus({ type: null, message: "" });
-
-    try {
-      const provider = {
-        publicKey: walletProvider.publicKey,
-        signTransaction: async (tx: any) => {
-          return await walletProvider.signTransaction(tx);
-        },
-      };
-
-      const result = await privacyCashSDK.createFundingTransaction(
-        provider,
-        0.05,
-      );
-
-      // Refresh balance
-      const newBalance = await privacyCashSDK.getDerivedKeypairBalance();
-      setDerivedKeypairBalance(newBalance);
-
-      setStatus({
-        type: "success",
-        message: "Successfully funded derived keypair with 0.05 SOL",
-        txSignature: result.signature,
-      });
-    } catch (error) {
-      const errorMsg =
-        error instanceof Error ? error.message : "Failed to fund keypair";
-      setStatus({ type: "error", message: errorMsg });
-    } finally {
-      setIsFunding(false);
-    }
-  };
-
-  // Check if derived keypair needs funding
-  const needsFunding =
-    derivedKeypairBalance !== null && derivedKeypairBalance < 0.05;
 
   const handleShield = async () => {
     if (!amount || parseFloat(amount) <= 0) {
@@ -148,48 +83,14 @@ export function ShieldSection() {
     });
 
     try {
-      // Initialize SDK from session if not already initialized
-      if (!isSDKInitialized) {
-        await privacyCashSDK.initializeFromSession();
-      }
-
-      // Check derived keypair balance for transaction fees
-      const currentDerivedBalance =
-        await privacyCashSDK.getDerivedKeypairBalance();
-      setDerivedKeypairBalance(currentDerivedBalance);
-
-      // Need at least 0.05 SOL in derived keypair for transaction fees
-      const MIN_DERIVED_BALANCE = 0.05;
-
-      if (currentDerivedBalance < MIN_DERIVED_BALANCE) {
-        setStatus({
-          type: "info",
-          message: `Your privacy keypair needs ${MIN_DERIVED_BALANCE} SOL for transaction fees. Click "Fund Keypair" below.`,
-        });
-        updateTransaction(txId, {
-          status: "failed",
-          error: "Insufficient keypair balance",
-        });
-        setIsLoading(false);
-        return;
-      }
-
       let result;
 
       if (currentToken.isNative) {
         // Deposit SOL using SDK
         const lamports = Math.floor(parseFloat(amount) * 1e9);
         result = await privacyCashSDK.deposit(lamports);
-      } else if (selectedToken === "USDC") {
-        // Deposit USDC using SDK
-        const baseUnits = Math.floor(parseFloat(amount) * 1e6);
-        result = await privacyCashSDK.depositUSDC(baseUnits);
       } else {
-        // Deposit SPL token using SDK
-        const baseUnits = Math.floor(
-          parseFloat(amount) * Math.pow(10, currentToken.decimals),
-        );
-        result = await privacyCashSDK.depositSPL(baseUnits, currentToken.mint!);
+        throw new Error("SPL token deposits not yet implemented");
       }
 
       updateTransaction(txId, {
@@ -419,8 +320,7 @@ export function ShieldSection() {
             !selectedToken ||
             !amount ||
             parseFloat(amount) <= 0 ||
-            parseFloat(amount) > publicBalance ||
-            needsFunding
+            parseFloat(amount) > publicBalance
           }
           className="w-full h-14 glow-primary"
         >
@@ -437,47 +337,6 @@ export function ShieldSection() {
           )}
         </Button>
 
-        {/* Funding Warning */}
-        {needsFunding && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-4 rounded-xl bg-accent/10 border border-accent/30"
-          >
-            <div className="flex items-start gap-3">
-              <Info className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm text-accent mb-2">
-                  Your privacy keypair needs 0.05 SOL for transaction fees. This
-                  is a one-time setup step.
-                </p>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Keypair: {derivedKeypairAddress?.slice(0, 8)}...
-                  {derivedKeypairAddress?.slice(-8)}
-                </p>
-                <Button
-                  onClick={handleFundKeypair}
-                  disabled={isFunding}
-                  size="sm"
-                  className="bg-accent hover:bg-accent/90"
-                >
-                  {isFunding ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Funding...
-                    </>
-                  ) : (
-                    <>
-                      <Wallet className="w-4 h-4 mr-2" />
-                      Fund Keypair (0.05 SOL)
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
         {/* Status Messages */}
         {status.type && (
           <motion.div
@@ -486,15 +345,11 @@ export function ShieldSection() {
             className={`p-4 rounded-xl flex items-start gap-3 ${
               status.type === "success"
                 ? "bg-primary/10 border border-primary/30"
-                : status.type === "info"
-                  ? "bg-accent/10 border border-accent/30"
-                  : "bg-destructive/10 border border-destructive/30"
+                : "bg-destructive/10 border border-destructive/30"
             }`}
           >
             {status.type === "success" ? (
               <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-            ) : status.type === "info" ? (
-              <Info className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
             ) : (
               <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
             )}
@@ -503,9 +358,7 @@ export function ShieldSection() {
                 className={`text-sm ${
                   status.type === "success"
                     ? "text-primary"
-                    : status.type === "info"
-                      ? "text-accent"
-                      : "text-destructive"
+                    : "text-destructive"
                 }`}
               >
                 {status.message}

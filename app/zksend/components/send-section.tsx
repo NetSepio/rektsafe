@@ -16,7 +16,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAppKitAccount } from "@reown/appkit/react";
 import { useTransactions } from "../context/transaction-context";
 import { useBalances } from "../hooks/use-balances";
 import { useWalletSession } from "@/components/wallet-session-provider";
@@ -32,10 +31,9 @@ const isValidSolanaAddress = (address: string): boolean => {
 };
 
 export function SendSection() {
-  const { address } = useAppKitAccount();
   const { addTransaction, updateTransaction } = useTransactions();
   const { isInitialized: isSessionInitialized } = useWalletSession();
-  const { tokens, privateTokens, refresh, isSDKInitialized } = useBalances();
+  const { tokens, privateTokens, refresh } = useBalances();
 
   const [selectedToken, setSelectedToken] = useState<TokenSymbol | null>(null);
   const [amount, setAmount] = useState("");
@@ -117,40 +115,9 @@ export function SendSection() {
     });
 
     try {
-      // Initialize SDK from session if not already initialized
-      if (!isSDKInitialized) {
-        await privacyCashSDK.initializeFromSession();
-      }
-
-      // Note: The Privacy Cash SDK currently doesn't expose a direct privateTransfer method
-      // Private transfers within the pool would require:
-      // 1. Withdrawing to the recipient's stealth address
-      // 2. Or a dedicated transfer function in the SDK
-      //
-      // For now, we simulate by withdrawing to the recipient's address
-      // In the future, this should use a proper private transfer function
-
-      let result;
-
-      if (currentToken.isNative) {
-        // For SOL: withdraw directly to recipient
-        const lamports = Math.floor(parseFloat(amount) * 1e9);
-        result = await privacyCashSDK.withdraw(lamports, recipient);
-      } else if (selectedToken === "USDC") {
-        // For USDC: withdraw to recipient
-        const baseUnits = Math.floor(parseFloat(amount) * 1e6);
-        result = await privacyCashSDK.withdrawUSDC(baseUnits, recipient);
-      } else {
-        // For other SPL tokens: withdraw to recipient
-        const baseUnits = Math.floor(
-          parseFloat(amount) * Math.pow(10, currentToken.decimals),
-        );
-        result = await privacyCashSDK.withdrawSPL(
-          baseUnits,
-          currentToken.mint!,
-          recipient,
-        );
-      }
+      // Private transfer by withdrawing to recipient
+      const lamports = Math.floor(parseFloat(amount) * 1e9);
+      const result = await privacyCashSDK.withdraw(lamports, recipient);
 
       updateTransaction(txId, {
         status: "confirmed",
@@ -159,7 +126,7 @@ export function SendSection() {
 
       setStatus({
         type: "success",
-        message: `Successfully sent ${amount} ${selectedToken} to ${recipient.slice(0, 6)}...${recipient.slice(-4)}`,
+        message: `Successfully sent ${amount} ${selectedToken} privately`,
         txSignature: result.signature,
       });
 
@@ -181,7 +148,7 @@ export function SendSection() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg font-mono">
           <Send className="w-5 h-5 text-accent" />
-          Private Send
+          Send Privately
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -190,7 +157,7 @@ export function SendSection() {
           <div className="p-4 rounded-xl bg-muted/30">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm text-muted-foreground font-mono">
-                Private Balance
+                Available Private Balance
               </span>
               <div
                 className="px-2 py-1 rounded text-xs font-bold"
@@ -202,28 +169,14 @@ export function SendSection() {
                 {currentToken.symbol}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="flex items-center gap-2 text-xs text-primary mb-1">
-                  <Shield className="w-3.5 h-3.5" />
-                  Available
-                </div>
-                <div className="text-lg font-mono font-semibold text-primary">
-                  {privateBalance.toFixed(4)}
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                  <Wallet className="w-3.5 h-3.5" />
-                  After Send
-                </div>
-                <div className="text-lg font-mono font-semibold text-foreground">
-                  {Math.max(
-                    0,
-                    privateBalance - parseFloat(amount || "0"),
-                  ).toFixed(4)}
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-primary" />
+              <span className="text-2xl font-mono font-semibold text-primary">
+                {privateBalance.toFixed(4)}
+              </span>
+              <span className="text-muted-foreground">
+                {currentToken.symbol}
+              </span>
             </div>
           </div>
         )}
@@ -231,12 +184,12 @@ export function SendSection() {
         {/* Asset Selector */}
         <div className="space-y-2">
           <label className="text-sm text-muted-foreground font-mono">
-            Asset to Send (Private)
+            Select Asset to Send
           </label>
           <div className="relative">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-full flex items-center justify-between p-4 rounded-xl bg-black/30 border border-border/50 hover:border-primary/50 transition-colors"
+              className="w-full flex items-center justify-between p-4 rounded-xl bg-black/30 border border-border/50 hover:border-accent/50 transition-colors"
             >
               {currentToken ? (
                 <div className="flex items-center gap-3">
@@ -260,7 +213,7 @@ export function SendSection() {
                 </div>
               ) : (
                 <span className="text-muted-foreground">
-                  Choose private asset...
+                  Choose an asset...
                 </span>
               )}
               <ChevronDown
@@ -274,13 +227,11 @@ export function SendSection() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute top-full left-0 right-0 mt-2 z-20 bg-card border border-border rounded-xl overflow-hidden shadow-xl max-h-72 overflow-y-auto"
+                className="absolute top-full left-0 right-0 mt-2 z-10 bg-card border border-border rounded-xl overflow-hidden shadow-xl max-h-72 overflow-y-auto"
               >
                 {privateTokens.length === 0 ? (
                   <div className="p-4 text-center text-muted-foreground text-sm">
-                    No tokens with private balance available.
-                    <br />
-                    Shield some assets first.
+                    No private balance available
                   </div>
                 ) : (
                   privateTokens.map((token) => (
@@ -291,7 +242,7 @@ export function SendSection() {
                         setIsDropdownOpen(false);
                         setAmount("");
                       }}
-                      className="w-full flex items-center justify-between p-4 hover:bg-primary/5 transition-colors"
+                      className="w-full flex items-center justify-between p-4 hover:bg-accent/5 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <div
@@ -328,6 +279,25 @@ export function SendSection() {
           </div>
         </div>
 
+        {/* Recipient Input */}
+        <div className="space-y-2">
+          <label className="text-sm text-muted-foreground font-mono">
+            Recipient Address
+          </label>
+          <div className="relative">
+            <Input
+              value={recipient}
+              onChange={(e) => handleRecipientChange(e.target.value)}
+              placeholder="Enter Solana address..."
+              className="h-14 pr-12 font-mono text-sm"
+            />
+            <User className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          </div>
+          {recipientError && (
+            <p className="text-xs text-destructive">{recipientError}</p>
+          )}
+        </div>
+
         {/* Amount Input */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -335,8 +305,8 @@ export function SendSection() {
               Amount to Send
             </label>
             {currentToken && (
-              <span className="text-xs text-primary">
-                Private: {privateBalance.toFixed(4)} {currentToken.symbol}
+              <span className="text-xs text-muted-foreground">
+                Available: {privateBalance.toFixed(4)} {currentToken.symbol}
               </span>
             )}
           </div>
@@ -354,43 +324,26 @@ export function SendSection() {
             <button
               onClick={handleMax}
               disabled={!selectedToken || privateBalance === 0}
-              className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 rounded-md bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors disabled:opacity-50"
+              className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 rounded-md bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/20 transition-colors disabled:opacity-50"
             >
               MAX
             </button>
           </div>
         </div>
 
-        {/* Recipient Address */}
-        <div className="space-y-2">
-          <label className="text-sm text-muted-foreground font-mono">
-            Recipient Address
-          </label>
-          <div className="relative">
-            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              value={recipient}
-              onChange={(e) => handleRecipientChange(e.target.value)}
-              placeholder="Enter Solana wallet address..."
-              className={`h-14 pl-12 font-mono text-sm ${
-                recipientError ? "border-destructive" : ""
-              }`}
-            />
-          </div>
-          {recipientError && (
-            <p className="text-xs text-destructive">{recipientError}</p>
-          )}
-        </div>
-
-        {/* Fee Info */}
-        <div className="p-4 rounded-xl bg-muted/30 space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground font-mono">Privacy Fee</span>
-            <span className="text-foreground font-mono">~0.002 SOL</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground font-mono">Network Fee</span>
-            <span className="text-foreground font-mono">~0.000005 SOL</span>
+        {/* Info Box */}
+        <div className="p-4 rounded-xl bg-accent/10 border border-accent/20">
+          <div className="flex items-start gap-3">
+            <Wallet className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm text-accent font-medium">
+                Private Transfer
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                The recipient will receive funds from the privacy pool. The
+                connection to your wallet will be broken.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -406,12 +359,12 @@ export function SendSection() {
             !recipient ||
             !!recipientError
           }
-          className="w-full h-14 bg-accent hover:bg-accent/90 glow-accent"
+          className="w-full h-14 bg-accent hover:bg-accent/90"
         >
           {isLoading ? (
             <>
               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Sending Privately...
+              Sending...
             </>
           ) : (
             <>
