@@ -5,13 +5,15 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { performReverseLookup } from "@bonfida/spl-name-service";
 
 const SOLANA_RPC =
-  process.env.NEXT_PUBLIC_SOLANA_RPC || "https://api.mainnet-beta.solana.com";
+  process.env.NEXT_PUBLIC_HELIUS_RPC ||
+  process.env.NEXT_PUBLIC_SOLANA_RPC ||
+  "https://api.mainnet-beta.solana.com";
 
 const connection = new Connection(SOLANA_RPC);
 
 // SNS Program ID
 const SNS_PROGRAM_ID = new PublicKey(
-  "namesLPneVptA9Z5rqUDD9tMTWEJwofgaYwp8cawRkX"
+  "namesLPneVptA9Z5rqUDD9tMTWEJwofgaYwp8cawRkX",
 );
 
 export function useSnsName(walletAddress: string | undefined) {
@@ -70,13 +72,11 @@ export function useSnsName(walletAddress: string | undefined) {
 }
 
 // Find the favorite/primary domain for a user
-async function findFavoriteDomain(
-  owner: PublicKey
-): Promise<PublicKey | null> {
+async function findFavoriteDomain(owner: PublicKey): Promise<PublicKey | null> {
   try {
     const [favoriteDomainKey] = PublicKey.findProgramAddressSync(
       [Buffer.from("favorite_domain"), owner.toBuffer()],
-      SNS_PROGRAM_ID
+      SNS_PROGRAM_ID,
     );
 
     const accountInfo = await connection.getAccountInfo(favoriteDomainKey);
