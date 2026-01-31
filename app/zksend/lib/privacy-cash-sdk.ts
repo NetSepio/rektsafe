@@ -11,6 +11,68 @@ const getHasherModule = () => {
   return import("@lightprotocol/hasher.rs");
 };
 
+// Browser storage for Privacy Cash SDK
+class BrowserStorage {
+  private prefix: string = "privacycash_";
+
+  getItem(key: string): string | null {
+    if (typeof window === "undefined") return null;
+    return window.localStorage.getItem(this.prefix + key);
+  }
+
+  setItem(key: string, value: string): void {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(this.prefix + key, value);
+  }
+
+  removeItem(key: string): void {
+    if (typeof window === "undefined") return;
+    window.localStorage.removeItem(this.prefix + key);
+  }
+
+  clear(): void {
+    if (typeof window === "undefined") return;
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key?.startsWith(this.prefix)) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((key) => window.localStorage.removeItem(key));
+  }
+
+  get length(): number {
+    if (typeof window === "undefined") return 0;
+    let count = 0;
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key?.startsWith(this.prefix)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  key(index: number): string | null {
+    if (typeof window === "undefined") return null;
+    let count = 0;
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key?.startsWith(this.prefix)) {
+        if (count === index) {
+          return key.slice(this.prefix.length);
+        }
+        count++;
+      }
+    }
+    return null;
+  }
+}
+
+// Singleton storage instance
+const browserStorage = new BrowserStorage();
+
 // Initialize hasher WASM before loading Privacy Cash SDK
 let hasherInitialized = false;
 async function ensureHasherWasm() {
@@ -174,7 +236,7 @@ export class PrivacyCashSDK {
         connection: this.connection,
         publicKey: new PublicKey(this.walletAddress),
         encryptionService: encryptionServiceInstance,
-        storage: undefined as any,
+        storage: browserStorage,
       });
 
       let totalLamports = 0;
@@ -220,7 +282,7 @@ export class PrivacyCashSDK {
         encryptionService: encryptionServiceInstance,
         transactionSigner: this.transactionSigner,
         lightWasm,
-        storage: undefined as any,
+        storage: browserStorage,
         keyBasePath: "rektsafe",
       });
 
@@ -265,7 +327,7 @@ export class PrivacyCashSDK {
         amount_in_lamports: lamports,
         encryptionService: encryptionServiceInstance,
         lightWasm,
-        storage: undefined as any,
+        storage: browserStorage,
         keyBasePath: "rektsafe",
         recipient,
       });
