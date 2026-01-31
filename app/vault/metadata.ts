@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Secure Vault | Threshold Signature Encryption",
   description:
-    "Access the rektSafe vault. Encrypt and decrypt your files using threshold signatures (TSS). Connect your Solana wallet to secure your digital assets with AES-256-GCM and Ed25519 cryptography.",
+    "Access the rektSafe vault. Encrypt and decrypt your files using threshold signatures (TSS).",
   keywords: [
     "vault",
     "encryption",

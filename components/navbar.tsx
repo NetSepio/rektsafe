@@ -15,6 +15,7 @@ import {
   AtSign,
   Home,
   Vault,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppKitAccount, useDisconnect } from "@reown/appkit/react";
@@ -29,6 +30,7 @@ interface NavLink {
 const navLinks: NavLink[] = [
   { href: "/", label: "Home", icon: Home },
   { href: "/vault/", label: "Vault", icon: Vault },
+  { href: "/zksend/", label: "zkSend", icon: Zap },
 ];
 
 // Compact wallet status component for navbar
@@ -92,7 +94,7 @@ export function Navbar() {
 
   // Check if we're on the vault page
   const isVaultPage = pathname === "/vault" || pathname === "/vault/";
-  // Show Enter Vault button only when wallet is NOT connected
+  // Show Connect Wallet button only when wallet is NOT connected
   // (on any page - homepage or vault page)
   const showEnterVaultButton = !isConnected;
 
@@ -242,7 +244,7 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Right side: Wallet Status + Enter Vault Button */}
+          {/* Right side: Wallet Status + Connect Wallet Button */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -252,7 +254,7 @@ export function Navbar() {
             {/* Wallet connection status - shown when connected */}
             <WalletStatus />
 
-            {/* Enter Vault button - hidden when on vault page and connected */}
+            {/* Connect Wallet button - hidden when on vault page and connected */}
             {showEnterVaultButton && (
               <Link href="/vault/">
                 <Button
@@ -260,8 +262,8 @@ export function Navbar() {
                   size="lg"
                   className="bg-primary/10 border border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 glow-primary text-base px-6 py-2.5 hover:scale-105 active:scale-95 font-semibold"
                 >
-                  <Terminal className="w-4 h-4 mr-2" />
-                  Enter Vault
+                  <Wallet className="w-4 h-4 mr-2" />
+                  Connect Wallet
                 </Button>
               </Link>
             )}
@@ -364,7 +366,7 @@ export function Navbar() {
                 </motion.div>
               )}
 
-              {/* Mobile Enter Vault button */}
+              {/* Mobile Connect Wallet button */}
               {showEnterVaultButton && (
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
@@ -380,8 +382,8 @@ export function Navbar() {
                       size="lg"
                       className="w-full bg-primary/10 border border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground text-base py-4 font-semibold"
                     >
-                      <Terminal className="w-5 h-5 mr-2" />
-                      Enter Vault
+                      <Wallet className="w-5 h-5 mr-2" />
+                      Connect Wallet
                     </Button>
                   </Link>
                 </motion.div>

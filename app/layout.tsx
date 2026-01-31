@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { WalletProvider } from "@/components/wallet-provider";
+import { WalletSessionProvider } from "@/components/wallet-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 
 const geistSans = Geist({
@@ -118,13 +119,15 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground min-h-screen grid-pattern`}
       >
         <WalletProvider>
-          <div className="scanlines" />
-          <div className="relative z-10 flex flex-col min-h-screen">
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <CookieConsent />
+          <WalletSessionProvider>
+            <div className="scanlines" />
+            <div className="relative z-10 flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <CookieConsent />
+          </WalletSessionProvider>
         </WalletProvider>
       </body>
     </html>

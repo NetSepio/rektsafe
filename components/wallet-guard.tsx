@@ -7,6 +7,7 @@ import { Wallet, Shield, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ReactNode, useState, useEffect } from "react";
+import { useWalletSession } from "@/components/wallet-session-provider";
 
 interface WalletGuardProps {
   children: ReactNode;
@@ -230,16 +231,8 @@ function WalletConnectOptions({ onConnect }: { onConnect?: () => void }) {
   );
 }
 
-// Inner component that uses AppKit hooks - only rendered client-side
-function WalletGuardInner({ children }: WalletGuardProps) {
-  const { isConnected } = useAppKitAccount();
-
-  if (isConnected) {
-    // User is connected - render children without the connected bar
-    // (wallet status is now shown in navbar)
-    return <>{children}</>;
-  }
-
+// Wallet connect screen component
+function WalletConnectScreen() {
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="max-w-2xl mx-auto">
@@ -259,8 +252,9 @@ function WalletGuardInner({ children }: WalletGuardProps) {
             <span className="gradient-text">Wallet</span>
           </h1>
           <p className="text-muted-foreground font-mono text-sm max-w-lg mx-auto">
-            Secure access to your threshold signature vault. Connect your Solana
-            wallet to encrypt, decrypt, and manage your digital assets.
+            Access your threshold signature vault and private transfers. Connect
+            your Solana wallet to encrypt, decrypt, shield, and manage your
+            digital assets privately.
           </p>
         </motion.div>
 
@@ -296,11 +290,12 @@ function WalletGuardInner({ children }: WalletGuardProps) {
 
                     <div className="text-center space-y-2">
                       <h3 className="text-xl font-mono font-bold text-foreground">
-                        Vault Access Restricted
+                        Secure Access Required
                       </h3>
                       <p className="text-sm text-muted-foreground max-w-sm">
                         Wallet authentication is required to access the secure
-                        vault. Your keys never leave your device.
+                        vault and private transfers. Your keys never leave your
+                        device.
                       </p>
                     </div>
 
@@ -343,7 +338,7 @@ function WalletGuardInner({ children }: WalletGuardProps) {
               {
                 icon: Wallet,
                 title: "Free",
-                desc: "No fees to use the vault",
+                desc: "No fees to use the platform",
               },
             ].map((item, i) => (
               <motion.div
@@ -367,6 +362,113 @@ function WalletGuardInner({ children }: WalletGuardProps) {
       </div>
     </div>
   );
+}
+
+// Session initialization screen
+function SessionInitScreen({
+  isLoading,
+  error,
+  onRetry,
+}: {
+  isLoading: boolean;
+  error: string | null;
+  onRetry: () => void;
+}) {
+  return (
+    <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-background">
+      <div className="max-w-2xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 mb-4">
+            <Shield className="w-4 h-4 text-primary" />
+            <span className="text-xs font-mono text-primary uppercase tracking-wider font-semibold">
+              Initializing Session
+            </span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-3">
+            <span className="text-foreground">Secure </span>
+            <span className="gradient-text">Session</span>
+          </h1>
+          <p className="text-muted-foreground font-mono text-sm max-w-lg mx-auto">
+            Please sign the message to establish a secure session for private
+            transfers. This signature is used to derive your encryption key.
+          </p>
+        </motion.div>
+
+        <Card className="border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden shadow-2xl shadow-black/50">
+          <CardContent className="p-8">
+            <div className="flex flex-col items-center gap-6">
+              <div className="relative">
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 border-2 border-primary/40 flex items-center justify-center glow-primary">
+                  {isLoading ? (
+                    <div className="w-10 h-10 border-3 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  ) : (
+                    <Lock className="w-10 h-10 text-primary" />
+                  )}
+                </div>
+              </div>
+
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-mono font-bold text-foreground">
+                  {isLoading
+                    ? "Waiting for Signature..."
+                    : "Signature Required"}
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  {error ||
+                    "Please approve the signature request in your wallet"}
+                </p>
+              </div>
+
+              {error && (
+                <Button
+                  onClick={onRetry}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  Try Again
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// Inner component that uses AppKit hooks - only rendered client-side
+function WalletGuardInner({ children }: WalletGuardProps) {
+  const { isConnected } = useAppKitAccount();
+  const { isInitialized, isLoading, error, initializeSession } =
+    useWalletSession();
+
+  // Initialize session when wallet is connected but session is not initialized
+  useEffect(() => {
+    if (isConnected && !isInitialized && !isLoading && !error) {
+      initializeSession();
+    }
+  }, [isConnected, isInitialized, isLoading, error, initializeSession]);
+
+  if (!isConnected) {
+    return <WalletConnectScreen />;
+  }
+
+  // Show loading state while initializing session
+  if (!isInitialized) {
+    return (
+      <SessionInitScreen
+        isLoading={isLoading}
+        error={error}
+        onRetry={initializeSession}
+      />
+    );
+  }
+
+  // User is connected and session is initialized - render children
+  return <>{children}</>;
 }
 
 // Main export component with SSR protection
@@ -394,8 +496,8 @@ export function WalletGuard({ children }: WalletGuardProps) {
               <span className="gradient-text">Wallet</span>
             </h1>
             <p className="text-muted-foreground font-mono text-sm max-w-lg mx-auto">
-              Secure access to your threshold signature vault. Connect your
-              Solana wallet to encrypt, decrypt, and manage your digital assets.
+              Secure access to your threshold signature vault and private
+              transfers. Connect your Solana wallet to get started.
             </p>
           </div>
 
@@ -409,39 +511,8 @@ export function WalletGuard({ children }: WalletGuardProps) {
                     </div>
                     <div className="text-center space-y-2">
                       <h3 className="text-xl font-mono font-bold text-foreground">
-                        Vault Access Restricted
+                        Loading...
                       </h3>
-                      <p className="text-sm text-muted-foreground max-w-sm">
-                        Wallet authentication is required to access the secure
-                        vault. Your keys never leave your device.
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs font-mono">
-                      <span className="text-muted-foreground">Supported:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="px-3 py-1.5 rounded-md bg-background border border-border text-foreground font-semibold">
-                          Phantom
-                        </span>
-                        <span className="px-3 py-1.5 rounded-md bg-background border border-border text-foreground font-semibold">
-                          Solflare
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-8 bg-card/50">
-                  <div className="flex flex-col items-center gap-6">
-                    <Button
-                      disabled
-                      className="w-full max-w-xs h-14 text-lg font-mono font-semibold bg-primary/10 border border-primary/50 text-primary"
-                    >
-                      <Wallet className="w-5 h-5 mr-2" />
-                      Loading...
-                    </Button>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Wallet className="w-3.5 h-3.5" />
-                      <span>New to Solana?</span>
-                      <span className="text-primary">Get Phantom Wallet →</span>
                     </div>
                   </div>
                 </div>
