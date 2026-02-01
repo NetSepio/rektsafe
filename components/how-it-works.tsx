@@ -288,7 +288,7 @@ export function HowItWorks() {
               }`}
             >
               <Zap className="w-5 h-5" />
-              <span>Private Transfers</span>
+              <span>zkSend</span>
             </button>
           </div>
         </motion.div>
@@ -336,8 +336,7 @@ export function HowItWorks() {
                 : "text-accent hover:text-accent/80"
             }`}
           >
-            Try the{" "}
-            {activeFeature === "zksig" ? "zkSig Demo" : "Private Transfer Demo"}
+            Try the {activeFeature === "zksig" ? "zkSig Demo" : "zkSend Demo"}
             <ArrowRight className="w-4 h-4" />
           </a>
         </motion.div>

@@ -252,9 +252,9 @@ function WalletConnectScreen() {
             <span className="gradient-text">Wallet</span>
           </h1>
           <p className="text-muted-foreground font-mono text-sm max-w-lg mx-auto">
-            Access your threshold signature vault and private transfers. Connect
-            your Solana wallet to encrypt, decrypt, shield, and manage your
-            digital assets privately.
+            Access zkSig for threshold signatures and zkSend for private
+            transfers. Connect your Solana wallet to encrypt, decrypt, shield,
+            and manage your digital assets with zero-knowledge privacy.
           </p>
         </motion.div>
 
@@ -293,9 +293,8 @@ function WalletConnectScreen() {
                         Secure Access Required
                       </h3>
                       <p className="text-sm text-muted-foreground max-w-sm">
-                        Wallet authentication is required to access the secure
-                        vault and private transfers. Your keys never leave your
-                        device.
+                        Wallet authentication is required to access zkSig and
+                        zkSend. Your keys never leave your device.
                       </p>
                     </div>
 

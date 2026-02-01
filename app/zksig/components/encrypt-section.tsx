@@ -2,14 +2,27 @@
 
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Lock, Upload, File, X } from "lucide-react";
+import { Lock, Upload, File, X, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTSS } from "../context/tss-context";
 
 export function EncryptSection() {
-  const { encryptFile, encryptedFile, originalFileName, shares, totalParties, threshold, output } = useTSS();
-  const [fileInfo, setFileInfo] = useState<{ name: string; size: number; type: string } | null>(null);
+  const {
+    encryptFile,
+    downloadEncryptedFile,
+    encryptedFile,
+    originalFileName,
+    shares,
+    totalParties,
+    threshold,
+    output,
+  } = useTSS();
+  const [fileInfo, setFileInfo] = useState<{
+    name: string;
+    size: number;
+    type: string;
+  } | null>(null);
   const [isEncrypting, setIsEncrypting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -47,9 +60,12 @@ export function EncryptSection() {
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
           <CardContent className="py-12 text-center">
             <Lock className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <h3 className="text-lg font-mono font-semibold mb-2">No Keys Generated</h3>
+            <h3 className="text-lg font-mono font-semibold mb-2">
+              No Keys Generated
+            </h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Please go to the <strong>Split Keys</strong> tab first to generate your threshold key shares before encrypting files.
+              Please go to the <strong>Split Keys</strong> tab first to generate
+              your threshold key shares before encrypting files.
             </p>
           </CardContent>
         </Card>
@@ -73,8 +89,12 @@ export function EncryptSection() {
           <CardContent className="space-y-4">
             <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
               <p className="text-sm text-muted-foreground">
-                Files are encrypted using <strong>AES-256-GCM</strong>. You will need{" "}
-                <strong>{threshold} of {totalParties}</strong> key shares to decrypt.
+                Files are encrypted using <strong>AES-256-GCM</strong>. You will
+                need{" "}
+                <strong>
+                  {threshold} of {totalParties}
+                </strong>{" "}
+                key shares to decrypt.
               </p>
             </div>
 
@@ -146,13 +166,23 @@ export function EncryptSection() {
                 <p className="text-sm text-muted-foreground mb-4">
                   {originalFileName} is now encrypted and ready
                 </p>
-                <Button
-                  onClick={clearFile}
-                  variant="outline"
-                  className="text-sm"
-                >
-                  Encrypt Another File
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button onClick={downloadEncryptedFile} className="flex-1">
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Encrypted File
+                  </Button>
+                  <Button
+                    onClick={clearFile}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Encrypt Another
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-4">
+                  Share the downloaded .encrypted file with your guardians. They
+                  can upload it in the Decrypt tab.
+                </p>
               </div>
             )}
           </CardContent>

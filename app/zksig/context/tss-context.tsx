@@ -38,6 +38,8 @@ interface TSSContextType extends TSSState {
   copyShare: (partyId: number) => void;
   downloadShares: () => void;
   encryptFile: (file: File) => Promise<void>;
+  downloadEncryptedFile: () => void;
+  loadEncryptedFile: (file: File) => Promise<void>;
   decryptFile: (selectedPartyIds: number[]) => Promise<void>;
   signMessage: (message: string) => Promise<string | null>;
   verifySignature: (message: string, signatureHex: string) => Promise<boolean>;
@@ -253,6 +255,108 @@ export function TSSProvider({ children }: { children: React.ReactNode }) {
     [threshold, totalParties],
   );
 
+  const downloadEncryptedFile = useCallback(async () => {
+    if (!encryptedFile || !iv || !originalFileName || !encryptionKey) {
+      setOutput({
+        lines: ["ERROR: No encrypted file to download!"],
+        type: "error",
+      });
+      return;
+    }
+
+    try {
+      // Export the encryption key as JWK
+      const keyJwk = await window.crypto.subtle.exportKey("jwk", encryptionKey);
+
+      // Create a package with encrypted data + IV + key + metadata
+      const packageData = {
+        version: 1,
+        originalFileName,
+        iv: Array.from(iv),
+        encryptedData: arrayBufferToHex(encryptedFile),
+        key: keyJwk,
+        timestamp: Date.now(),
+      };
+
+      const blob = new Blob([JSON.stringify(packageData, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${originalFileName}.rektSafe.encrypted`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      setOutput({
+        lines: [
+          `✓ Encrypted file downloaded`,
+          `✓ File: ${originalFileName}.rektSafe.encrypted`,
+          `✓ Share this file with your guardians`,
+        ],
+        type: "success",
+      });
+    } catch (error) {
+      setOutput({
+        lines: [`ERROR: ${(error as Error).message}`],
+        type: "error",
+      });
+    }
+  }, [encryptedFile, iv, originalFileName, encryptionKey]);
+
+  const loadEncryptedFile = useCallback(async (file: File) => {
+    try {
+      setOutput({
+        lines: ["Loading encrypted file package..."],
+        type: "info",
+      });
+
+      const fileText = await file.text();
+      const packageData = JSON.parse(fileText);
+
+      // Validate package
+      if (!packageData.encryptedData || !packageData.iv || !packageData.key) {
+        setOutput({
+          lines: ["ERROR: Invalid encrypted file package!"],
+          type: "error",
+        });
+        return;
+      }
+
+      // Restore encrypted file state
+      const encryptedData = hexToArrayBuffer(packageData.encryptedData);
+      const restoredIv = new Uint8Array(packageData.iv);
+
+      // Import the encryption key
+      const restoredKey = await window.crypto.subtle.importKey(
+        "jwk",
+        packageData.key,
+        { name: "AES-GCM" },
+        false, // not extractable again
+        ["decrypt"],
+      );
+
+      setEncryptedFile(encryptedData.buffer as ArrayBuffer);
+      setEncryptionKey(restoredKey);
+      setIv(restoredIv);
+      setOriginalFileName(packageData.originalFileName || "decrypted-file");
+
+      setOutput({
+        lines: [
+          `✓ Encrypted file loaded: ${packageData.originalFileName}`,
+          `✓ File size: ${(encryptedData.length / 1024).toFixed(2)} KB`,
+          `✓ Ready for threshold decryption`,
+        ],
+        type: "success",
+      });
+    } catch (error) {
+      setOutput({
+        lines: [`ERROR: ${(error as Error).message}`],
+        type: "error",
+      });
+    }
+  }, []);
+
   const decryptFile = useCallback(
     async (selectedPartyIds: number[]) => {
       if (selectedPartyIds.length < threshold) {
@@ -435,6 +539,8 @@ export function TSSProvider({ children }: { children: React.ReactNode }) {
     copyShare,
     downloadShares,
     encryptFile,
+    downloadEncryptedFile,
+    loadEncryptedFile,
     decryptFile,
     signMessage,
     verifySignature,

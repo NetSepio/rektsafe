@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Unlock, Upload, CheckCircle, File, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,10 +15,15 @@ export function DecryptSection() {
     encryptedFile,
     originalFileName,
     decryptFile,
+    loadEncryptedFile,
     hasGeneratedKeys,
   } = useTSS();
-  const [selectedParties, setSelectedParties] = useState<Set<number>>(new Set());
+  const [selectedParties, setSelectedParties] = useState<Set<number>>(
+    new Set(),
+  );
   const [isDecrypting, setIsDecrypting] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleParty = (id: number) => {
     const newSelected = new Set(selectedParties);
@@ -46,9 +51,12 @@ export function DecryptSection() {
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
           <CardContent className="py-12 text-center">
             <Unlock className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <h3 className="text-lg font-mono font-semibold mb-2">No Keys Generated</h3>
+            <h3 className="text-lg font-mono font-semibold mb-2">
+              No Keys Generated
+            </h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Please go to the <strong>Split Keys</strong> tab first to set up your threshold keys.
+              Please go to the <strong>Split Keys</strong> tab first to set up
+              your threshold keys.
             </p>
           </CardContent>
         </Card>
@@ -71,11 +79,51 @@ export function DecryptSection() {
           </CardHeader>
           <CardContent className="space-y-4">
             {!encryptedFile ? (
-              <div className="p-6 rounded-lg bg-accent/5 border border-accent/20 text-center">
-                <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  No encrypted file available. Go to the <strong>Encrypt</strong> tab to encrypt a file first.
-                </p>
+              <div className="space-y-4">
+                <div className="p-6 rounded-lg bg-accent/5 border border-accent/20 text-center">
+                  <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Upload an encrypted file (.rektSafe.encrypted) to decrypt
+                    it. The file owner must share their key shares with you.
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".rektSafe.encrypted,.encrypted,.json"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        await loadEncryptedFile(file);
+                        setUploadedFileName(file.name);
+                      }
+                    }}
+                    className="hidden"
+                    id="encrypted-file-upload"
+                  />
+                  <label htmlFor="encrypted-file-upload">
+                    <Button
+                      variant="outline"
+                      className="cursor-pointer"
+                      asChild
+                    >
+                      <span>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload Encrypted File
+                      </span>
+                    </Button>
+                  </label>
+                </div>
+
+                {uploadedFileName && (
+                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+                    <p className="text-sm text-primary font-mono">
+                      ✓ Loaded: {uploadedFileName}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Select your key shares below to decrypt
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <>
@@ -138,7 +186,9 @@ export function DecryptSection() {
                       selectedParties.size >= threshold ? "bg-primary" : ""
                     }
                   >
-                    {selectedParties.size >= threshold ? "Ready" : "Insufficient"}
+                    {selectedParties.size >= threshold
+                      ? "Ready"
+                      : "Insufficient"}
                   </Badge>
                 </div>
 
