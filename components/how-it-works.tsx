@@ -24,7 +24,7 @@ import {
   Eye,
 } from "lucide-react";
 
-type Feature = "vault" | "zksend";
+type Feature = "zksig" | "zksend";
 
 interface Step {
   icon: typeof KeyRound;
@@ -34,7 +34,7 @@ interface Step {
   code: string;
 }
 
-const vaultSteps: Step[] = [
+const zksigSteps: Step[] = [
   {
     icon: KeyRound,
     number: "01",
@@ -215,7 +215,7 @@ function StepCard({ step, index }: { step: Step; index: number }) {
 export function HowItWorks() {
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
-  const [activeFeature, setActiveFeature] = useState<Feature>("vault");
+  const [activeFeature, setActiveFeature] = useState<Feature>("zksig");
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -224,7 +224,7 @@ export function HowItWorks() {
 
   const progressWidth = useTransform(scrollYProgress, [0, 0.5], ["0%", "100%"]);
 
-  const steps = activeFeature === "vault" ? vaultSteps : zkSendSteps;
+  const steps = activeFeature === "zksig" ? zksigSteps : zkSendSteps;
 
   return (
     <section
@@ -269,15 +269,15 @@ export function HowItWorks() {
           {/* Feature Tabs */}
           <div className="flex justify-center gap-4 mb-12">
             <button
-              onClick={() => setActiveFeature("vault")}
+              onClick={() => setActiveFeature("zksig")}
               className={`flex items-center gap-3 px-6 py-4 rounded-xl font-mono font-semibold transition-all duration-300 ${
-                activeFeature === "vault"
+                activeFeature === "zksig"
                   ? "bg-primary/10 border-2 border-primary text-primary"
                   : "bg-card/50 border border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
               }`}
             >
               <Shield className="w-5 h-5" />
-              <span>Threshold Vault</span>
+              <span>zkSig — TSS</span>
             </button>
             <button
               onClick={() => setActiveFeature("zksend")}
@@ -298,7 +298,7 @@ export function HowItWorks() {
             <motion.div
               style={{ height: progressWidth }}
               className={`w-full ${
-                activeFeature === "vault"
+                activeFeature === "zksig"
                   ? "bg-gradient-to-b from-primary to-accent"
                   : "bg-gradient-to-b from-accent to-cyan-400"
               }`}
@@ -329,15 +329,15 @@ export function HowItWorks() {
           className="mt-16 text-center"
         >
           <a
-            href={activeFeature === "vault" ? "/vault/" : "/zksend/"}
+            href={activeFeature === "zksig" ? "/zksig/" : "/zksend/"}
             className={`inline-flex items-center gap-2 font-mono transition-colors ${
-              activeFeature === "vault"
+              activeFeature === "zksig"
                 ? "text-primary hover:text-primary/80"
                 : "text-accent hover:text-accent/80"
             }`}
           >
             Try the{" "}
-            {activeFeature === "vault" ? "Vault Demo" : "Private Transfer Demo"}
+            {activeFeature === "zksig" ? "zkSig Demo" : "Private Transfer Demo"}
             <ArrowRight className="w-4 h-4" />
           </a>
         </motion.div>

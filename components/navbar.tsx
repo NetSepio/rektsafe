@@ -14,7 +14,7 @@ import {
   LogOut,
   AtSign,
   Home,
-  Vault,
+  KeyRound,
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ interface NavLink {
 
 const navLinks: NavLink[] = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/vault/", label: "Vault", icon: Vault },
+  { href: "/zksig/", label: "zkSig", icon: KeyRound },
   { href: "/zksend/", label: "zkSend", icon: Zap },
 ];
 
@@ -92,8 +92,8 @@ export function Navbar() {
   const pathname = usePathname();
   const { isConnected } = useAppKitAccount();
 
-  // Check if we're on the vault page
-  const isVaultPage = pathname === "/vault" || pathname === "/vault/";
+  // Check if we're on the zksig page
+  const isZksigPage = pathname === "/zksig" || pathname === "/zksig/";
   // Show Connect Wallet button only when wallet is NOT connected
   // (on any page - homepage or vault page)
   const showEnterVaultButton = !isConnected;
@@ -254,9 +254,9 @@ export function Navbar() {
             {/* Wallet connection status - shown when connected */}
             <WalletStatus />
 
-            {/* Connect Wallet button - hidden when on vault page and connected */}
+            {/* Connect Wallet button - hidden when on zksig page and connected */}
             {showEnterVaultButton && (
-              <Link href="/vault/">
+              <Link href="/zksig/">
                 <Button
                   variant="default"
                   size="lg"
@@ -375,7 +375,7 @@ export function Navbar() {
                   className="pt-2"
                 >
                   <Link
-                    href="/vault/"
+                    href="/zksig/"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Button

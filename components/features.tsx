@@ -6,7 +6,7 @@ import {
   Shield,
   Lock,
   Users,
-  Timer,
+  Zap,
   FileKey,
   Globe,
   Fingerprint,
@@ -15,49 +15,49 @@ import {
 const features = [
   {
     icon: Shield,
-    title: "Threshold Signatures",
+    title: "zkSig — Threshold Signatures",
     description:
-      "Split your secrets across multiple parties. Requires M-of-N signatures to decrypt. No single point of failure.",
+      "Split keys with n-of-k threshold scheme. Encrypt files. Sign & verify messages. All with Ed25519 + AES-256-GCM.",
     color: "text-primary",
     bgColor: "bg-primary/10",
   },
   {
-    icon: Lock,
-    title: "Zero-Knowledge",
+    icon: Zap,
+    title: "zkSend — Private Transfers",
     description:
-      "We never store your keys or data. Everything is encrypted client-side before touching any server.",
+      "Shield, send, and unshield Solana assets. Zero-knowledge privacy for your transactions. Break the chain.",
     color: "text-accent",
     bgColor: "bg-accent/10",
   },
   {
-    icon: Timer,
-    title: "Dead Man's Switch",
+    icon: Lock,
+    title: "Zero-Knowledge Architecture",
     description:
-      "Set inactivity timers. If you don't check in, your encrypted data automatically becomes accessible to beneficiaries.",
+      "We never store your keys or data. Everything encrypted client-side. No servers, no tracking, no compromises.",
     color: "text-[#00d4ff]",
     bgColor: "bg-[#00d4ff]/10",
   },
   {
     icon: Users,
-    title: "Beneficiary System",
+    title: "Multi-Party Trust",
     description:
-      "Designate trusted family members or friends. They can only access data when conditions are met.",
+      "Distribute key shares to trusted guardians. Require M-of-N signatures for recovery. No single point of failure.",
     color: "text-[#ffaa00]",
     bgColor: "bg-[#ffaa00]/10",
   },
   {
     icon: FileKey,
-    title: "File Encryption",
+    title: "Universal File Encryption",
     description:
-      "Encrypt any file type with AES-256-GCM. Wills, passwords, crypto wallets, sensitive documents.",
+      "Encrypt any file type — wills, wallet seeds, passwords, documents. Secure inheritance for any digital asset.",
     color: "text-[#9d4edd]",
     bgColor: "bg-[#9d4edd]/10",
   },
   {
     icon: Globe,
-    title: "Fully Decentralized",
+    title: "Truly Decentralized",
     description:
-      "No central servers. Works entirely in your browser. Your data, your control. Always.",
+      "No accounts, no servers, no custody. Runs entirely in your browser. For cypherpunks, by cypherpunks.",
     color: "text-[#ff3366]",
     bgColor: "bg-[#ff3366]/10",
   },
@@ -152,8 +152,8 @@ export function Features() {
           </h2>
 
           <p className="text-muted-foreground max-w-2xl mx-auto font-mono text-sm">
-            Every feature is designed with one goal: ensuring your digital assets
-            are accessible to those you trust, only when it matters.
+            Every feature is designed with one goal: ensuring your digital
+            assets are accessible to those you trust, only when it matters.
           </p>
         </motion.div>
 
@@ -165,7 +165,9 @@ export function Features() {
 
         <motion.div
           initial={{ opacity: 0, scaleX: 0 }}
-          animate={isInView ? { opacity: 1, scaleX: 1 } : { opacity: 0, scaleX: 0 }}
+          animate={
+            isInView ? { opacity: 1, scaleX: 1 } : { opacity: 0, scaleX: 0 }
+          }
           transition={{ duration: 0.8, delay: 0.8 }}
           className="mt-20 flex items-center justify-center gap-4"
         >

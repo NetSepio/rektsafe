@@ -16,8 +16,17 @@
 ```
 rektsafe/
 ├── app/                    # Next.js App Router
-│   ├── vault/             # Crypto vault (TSS app)
-│   │   ├── page.tsx       # Vault page component
+│   ├── zksig/             # zkSig - Threshold signatures (TSS/DMS)
+│   │   ├── page.tsx       # Main zkSig page with tabs
+│   │   ├── components/    # Tab section components
+│   │   │   ├── tab-navigation.tsx    # Tab switcher UI
+│   │   │   ├── split-keys-section.tsx # Generate key shares
+│   │   │   ├── encrypt-section.tsx    # File encryption
+│   │   │   ├── decrypt-section.tsx    # File decryption
+│   │   │   ├── sign-section.tsx       # Message signing
+│   │   │   └── verify-section.tsx     # Signature verification
+│   │   ├── context/       # TSS context for state management
+│   │   │   └── tss-context.tsx
 │   │   └── metadata.ts    # Page-specific metadata
 │   ├── zksend/            # Private transfers (zkSend)
 │   │   ├── page.tsx       # Main zkSend page
@@ -174,16 +183,36 @@ const nextConfig = {
 | Route | Description |
 |-------|-------------|
 | `/` | Landing page |
-| `/vault/` | Crypto vault - TSS app |
+| `/zksig/` | zkSig - Threshold signatures (TSS/DMS) |
 | `/zksend/` | Private transfers - zkSend app |
 | `/privacy/` | Privacy policy |
 | `/terms/` | Terms of service |
+
+## zkSig Tabs
+
+The zkSig page uses a tabbed interface similar to zkSend:
+
+| Tab | Component | Description |
+|-----|-----------|-------------|
+| `split` | `split-keys-section.tsx` | Generate threshold key shares (n-of-k) |
+| `encrypt` | `encrypt-section.tsx` | Encrypt files with AES-256-GCM |
+| `decrypt` | `decrypt-section.tsx` | Decrypt files using threshold signatures |
+| `sign` | `sign-section.tsx` | Sign messages with Ed25519 |
+| `verify` | `verify-section.tsx` | Verify Ed25519 signatures |
+
+### State Management
+
+zkSig uses a React Context (`tss-context.tsx`) to share state between tabs:
+- Key generation and shares
+- Encryption/decryption keys
+- File encryption state
+- Signature operations
 
 ## Build Output
 
 Static files are generated in `/dist/`:
 - `index.html` - Home page
-- `vault/index.html` - Crypto vault
+- `zksig/index.html` - zkSig threshold signatures
 - `zksend/index.html` - Private transfers
 - `privacy/index.html` - Privacy page
 - `terms/index.html` - Terms page

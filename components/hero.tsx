@@ -190,7 +190,7 @@ export function Hero() {
             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
           </span>
           <span className="text-xs font-mono text-primary uppercase tracking-widest">
-            Dead Man&apos;s Switch v1.0
+            zkSig + zkSend — Zero-Knowledge Crypto Tools
           </span>
         </motion.div>
 
@@ -202,7 +202,7 @@ export function Hero() {
         >
           <span className="block text-foreground">Secure Your</span>
           <span className="block gradient-text mt-2">
-            <GlitchText text="DIGITAL LEGACY" />
+            <GlitchText text="CRYPTO PRIVACY" />
           </span>
         </motion.h1>
 
@@ -213,7 +213,7 @@ export function Hero() {
           className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-4 font-mono"
         >
           <TypeWriter
-            text="// Pass your crypto & data to family if you're gone"
+            text="// Split keys. Encrypt files. Send privately. No servers."
             delay={40}
           />
         </motion.p>
@@ -224,8 +224,8 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.5 }}
           className="text-sm text-muted-foreground/60 max-w-xl mx-auto mb-10"
         >
-          Decentralized threshold signatures. Zero-knowledge encryption. Your
-          keys, your control. Always.
+          Threshold signatures with zkSig. Private transfers with zkSend. All
+          client-side. Your keys, your data, your control.
         </motion.p>
 
         <motion.div
@@ -235,7 +235,7 @@ export function Hero() {
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           {!isConnected && (
-            <Link href="/vault/">
+            <Link href="/zksig/">
               <Button
                 size="lg"
                 className="group bg-primary text-primary-foreground hover:bg-primary/90 glow-primary px-8 py-6 text-lg font-mono"

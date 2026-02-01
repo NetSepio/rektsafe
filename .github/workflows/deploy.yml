@@ -53,6 +53,9 @@ jobs:
           # Reown Project ID from GitHub repository secrets
           # Get one at: https://cloud.reown.com
           NEXT_PUBLIC_REOWN_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_REOWN_PROJECT_ID }}
+          # Helius RPC for Solana - required for wallet and zkSend functionality
+          # Get one at: https://helius.dev
+          NEXT_PUBLIC_HELIUS_RPC: ${{ secrets.NEXT_PUBLIC_HELIUS_RPC }}
           # Set to empty string for custom domain (e.g., rektsafe.com)
           # Remove or comment out this line if using username.github.io/repo-name
           BASE_PATH: ""

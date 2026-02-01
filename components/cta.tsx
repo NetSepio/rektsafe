@@ -60,7 +60,7 @@ export function CTA() {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Link href="/vault/">
+            <Link href="/zksig/">
               <Button
                 size="lg"
                 className="group bg-primary text-primary-foreground hover:bg-primary/90 glow-primary px-8 py-6 text-lg font-mono"

@@ -1,10 +1,12 @@
 # rektSafe
 
-**Dead Man's Switch for Your Crypto & Data**
+**Zero-Knowledge Crypto Inheritance & Private Transfers**
+
+> *For Cypherpunks, By Cypherpunks*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A decentralized, client-only dead man's switch that safely passes your crypto, files, and sensitive data to your loved ones if something happens to you.
+A decentralized, zero-knowledge platform for crypto inheritance and private transactions. Split your keys with threshold signatures, encrypt sensitive data, and transfer assets privately—all client-side, no servers, no tracking.
 
 ![Cypherpunk Theme](https://img.shields.io/badge/Theme-Cypherpunk-00ff88)
 ![Crypto](https://img.shields.io/badge/Crypto-AES--256%2FEd25519-00d4ff)
@@ -12,13 +14,16 @@ A decentralized, client-only dead man's switch that safely passes your crypto, f
 
 ## 🚀 Features
 
-- **🔐 Threshold Signatures (TSS)** - Split secrets across multiple parties
-- **🔒 Zero-Knowledge Encryption** - AES-256-GCM, client-side only
-- **🕵️ Private Transfers** - Shield, send, and unshield assets via zkSend
-- **⏰ Dead Man's Switch** - Automated inactivity timers
-- **👥 Beneficiary System** - Designate trusted guardians
-- **📁 File Encryption** - Secure any file type
-- **🌐 Fully Decentralized** - No servers, no accounts, no tracking
+| Feature | Description |
+|---------|-------------|
+| **🔐 zkSig** | Threshold signatures—split keys, encrypt files, sign & verify messages |
+| **🕵️ zkSend** | Private transfers—shield, send, and unshield Solana assets |
+| **🔒 Zero-Knowledge** | AES-256-GCM + Ed25519, everything client-side |
+| **⏰ Dead Man's Switch** | Automated inactivity triggers for inheritance |
+| **👥 Multi-Party** | n-of-k threshold scheme for distributed trust |
+| **📁 File Encryption** | Secure any file type with threshold decryption |
+| **🌐 Fully Decentralized** | No servers, no accounts, no tracking |
+| **👛 Wallet Native** | Connect your Solana wallet, no new keys needed |
 
 ## 🎨 Design
 
@@ -47,8 +52,10 @@ A decentralized, client-only dead man's switch that safely passes your crypto, f
 ```
 rektsafe/
 ├── app/                   # Next.js app directory
-│   ├── vault/            # Crypto vault (TSS app)
-│   ├── zksend/           # Private transfers (zkSend)
+│   ├── zksig/            # zkSig - Threshold signatures (TSS/DMS)
+│   │   ├── components/   # Split, Encrypt, Decrypt, Sign, Verify tabs
+│   │   └── context/      # TSS state management
+│   ├── zksend/           # zkSend - Private transfers (shield/send/unshield)
 │   ├── privacy/          # Privacy policy page
 │   ├── terms/            # Terms of service page
 │   ├── globals.css       # Global styles + cypherpunk theme
@@ -134,7 +141,7 @@ Push to `main` branch triggers automatic deployment via GitHub Actions.
 ## 📝 Pages
 
 - **Home** (`/`) - Landing page with features and how it works
-- **Vault** (`/vault/`) - Interactive TSS encryption/decryption app
+- **zkSig** (`/zksig/`) - Threshold signatures - split keys, encrypt, sign & verify
 - **zkSend** (`/zksend/`) - Private asset shielding and transfers
 - **Privacy** (`/privacy/`) - Privacy policy
 - **Terms** (`/terms/`) - Terms of service

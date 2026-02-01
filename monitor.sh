@@ -14,7 +14,7 @@ log() {
 }
 
 check_server() {
-    curl -s --max-time 10 "$URL/vault/" > /dev/null 2>&1
+    curl -s --max-time 10 "$URL/zksig/" > /dev/null 2>&1
     return $?
 }
 
