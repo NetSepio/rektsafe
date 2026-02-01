@@ -67,7 +67,7 @@ export function Footer() {
               <Github className="w-4 h-4" />
             </a>
             <a
-              href="https://x.com/_rektsafe"
+              href="https://x.com/netsepio"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 text-muted-foreground hover:text-primary transition-colors"
@@ -85,7 +85,7 @@ export function Footer() {
               <Send className="w-4 h-4" />
             </a>
             <a
-              href="mailto:support@rektsafe.com"
+              href="mailto:support@netsepio.com"
               className="p-2 text-muted-foreground hover:text-primary transition-colors"
               aria-label="Email"
             >
