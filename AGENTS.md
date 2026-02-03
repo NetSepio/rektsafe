@@ -34,6 +34,22 @@ rektsafe/
 │   │   ├── hooks/         # useBalances hook
 │   │   ├── lib/           # Privacy Cash SDK wrapper
 │   │   └── context/       # Transaction context
+│   ├── zkvault/           # NFT-based Lending Vault (zkVault)
+│   │   ├── page.tsx       # Main zkVault page
+│   │   ├── types/         # TypeScript type definitions
+│   │   │   └── index.ts   # Vault types (positions, requests, etc.)
+│   │   ├── components/    # Tab section components
+│   │   │   ├── tab-navigation.tsx     # Tab switcher UI
+│   │   │   ├── tvl-card.tsx           # TVL statistics display
+│   │   │   ├── deposit-section.tsx    # Deposit funds & mint NFT
+│   │   │   ├── status-section.tsx     # View positions & yield
+│   │   │   ├── withdraw-section.tsx   # Submit withdrawal requests
+│   │   │   ├── claim-section.tsx      # Claim yield separately
+│   │   │   └── admin-section.tsx      # Admin dashboard
+│   │   ├── context/       # Vault context for state management
+│   │   │   └── vault-context.tsx
+│   │   └── lib/           # Supabase client & utilities
+│   │       └── supabase.ts
 │   ├── privacy/           # Privacy policy page
 │   ├── terms/             # Terms of service page
 │   ├── globals.css        # Cypherpunk theme variables
@@ -185,6 +201,7 @@ const nextConfig = {
 | `/` | Landing page |
 | `/zksig/` | zkSig - Threshold signatures (TSS/DMS) |
 | `/zksend/` | Private transfers - zkSend app |
+| `/zkvault/` | zkVault - NFT-based lending vault |
 | `/privacy/` | Privacy policy |
 | `/terms/` | Terms of service |
 
@@ -311,6 +328,74 @@ function MyComponent() {
   return <Button>Connect Wallet</Button>;
 }
 ```
+
+## zkVault - NFT-Based Lending Vault
+
+### Overview
+zkVault is a lending pool where users deposit USDC/USDT and receive NFTs representing their positions. Yield accrues over time based on pool performance.
+
+### Supported Tokens
+- **USDC** - `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`
+- **USDT** - `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB`
+
+### Vault Configuration
+Located at `app/zkvault/context/vault-context.tsx`:
+
+```typescript
+const VAULT_CONFIG = {
+  vaultAddress: process.env.NEXT_PUBLIC_VAULT_ADDRESS,
+  minDeposit: 100,        // $100 minimum
+  maxDeposit: 100000,     // $100k maximum
+  coolingOffPeriod: 48,   // 48 hours
+  supportedTokens: ["USDC", "USDT"],
+  isPaused: false,
+};
+```
+
+### Database Integration
+Uses Supabase for off-chain tracking (optional - mock storage for demo):
+
+| Table | Purpose |
+|-------|---------|
+| `vault_positions` | NFT positions with metadata |
+| `withdrawal_requests` | User withdrawal submissions |
+| `yield_claims` | Yield claim requests |
+| `pool_stats` | TVL, APR, yield index |
+
+### zkVault Tabs
+
+| Tab | Component | Description |
+|-----|-----------|-------------|
+| `deposit` | `deposit-section.tsx` | Deposit funds, receive NFT |
+| `status` | `status-section.tsx` | View positions & accrued yield |
+| `withdraw` | `withdraw-section.tsx` | Submit withdrawal requests |
+| `claim` | `claim-section.tsx` | Claim yield separately |
+| `admin` | `admin-section.tsx` | Admin dashboard (multisig) |
+
+### Yield Calculation
+```typescript
+accruedYield = Principal × (CurrentYieldIndex - DepositIndex)
+totalValue = Principal + accruedYield
+```
+
+### Withdrawal Flow
+1. User submits withdrawal request
+2. 48-hour cooling-off period starts
+3. Admins review after cooling-off
+4. Multisig executes disbursement
+5. NFT transferred to escrow/burned
+
+### Environment Variables
+```bash
+# Vault Configuration
+NEXT_PUBLIC_VAULT_ADDRESS=your_multisig_vault_address
+
+# Supabase (optional - uses mock storage if not set)
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+```
+
+---
 
 ## Privacy Cash SDK Integration
 

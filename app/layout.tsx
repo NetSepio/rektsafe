@@ -25,11 +25,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "rektSafe | Dead Man's Switch for Crypto & Data",
+    default: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Yield",
     template: "%s | rektSafe",
   },
   description:
-    "Secure your digital legacy. A decentralized dead man's switch that safely passes your crypto, files, and data to your loved ones if something happens to you.",
+    "rektSafe: Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault). For Cypherpunks, By Cypherpunks.",
   keywords: [
     "crypto",
     "dead man's switch",
@@ -53,9 +53,9 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "rektSafe | Dead Man's Switch for Crypto & Data",
+    title: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Yield",
     description:
-      "Secure your digital legacy. Pass your crypto and data to family if you're gone.",
+      "Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault). For Cypherpunks, By Cypherpunks.",
     type: "website",
     url: "https://rektsafe.com",
     siteName: "rektSafe",
@@ -65,15 +65,15 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "rektSafe - Dead Man's Switch for Crypto & Data",
+        alt: "rektSafe - Crypto Security Suite",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "rektSafe | Dead Man's Switch for Crypto & Data",
+    title: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Yield",
     description:
-      "Secure your digital legacy. Pass your crypto and data to family if you're gone.",
+      "Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault).",
     creator: "@rektsafe",
     images: ["/og-image.png"],
   },

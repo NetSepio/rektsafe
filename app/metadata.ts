@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 
 export const defaultMetadata: Metadata = {
-  title: "rektSafe | Dead Man's Switch for Crypto & Data",
+  title: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Yield",
   description:
-    "Secure your digital legacy. A decentralized dead man's switch that safely passes your crypto, files, and data to your loved ones if something happens to you.",
+    "rektSafe: Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault). For Cypherpunks, By Cypherpunks.",
 };
 
 export const vaultMetadata: Metadata = {
@@ -23,7 +23,8 @@ export const privacyMetadata: Metadata = {
     "Learn how rektSafe protects your privacy. Zero-knowledge architecture, no data collection, and client-side encryption.",
   openGraph: {
     title: "Privacy Policy | rektSafe",
-    description: "Your data, your control. Learn about our privacy-first approach.",
+    description:
+      "Your data, your control. Learn about our privacy-first approach.",
   },
 };
 

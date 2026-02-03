@@ -31,6 +31,7 @@ const navLinks: NavLink[] = [
   { href: "/", label: "Home", icon: Home },
   { href: "/zksig/", label: "zkSig", icon: KeyRound },
   { href: "/zksend/", label: "zkSend", icon: Zap },
+  { href: "/zkvault/", label: "zkVault", icon: Wallet },
 ];
 
 // Compact wallet status component for navbar
