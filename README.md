@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A decentralized, zero-knowledge platform for crypto inheritance and private transactions. Split your keys with threshold signatures, encrypt sensitive data, and transfer assets privately—all client-side, no servers, no tracking.
+A decentralized, zero-knowledge platform for crypto inheritance, private transfers, and time-locked promises. Split your keys with threshold signatures, encrypt sensitive data, transfer assets privately, and lock tokens for beneficiaries on Solana or EVM networks — all client-side, no servers, no tracking.
 
 ![Cypherpunk Theme](https://img.shields.io/badge/Theme-Cypherpunk-00ff88)
 ![Crypto](https://img.shields.io/badge/Crypto-AES--256%2FEd25519-00d4ff)
@@ -18,12 +18,15 @@ A decentralized, zero-knowledge platform for crypto inheritance and private tran
 |---------|-------------|
 | **🔐 zkSig** | Threshold signatures—split keys, encrypt files, sign & verify messages |
 | **🕵️ zkSend** | Private transfers—shield, send, and unshield Solana assets |
-| **🔒 Zero-Knowledge** | AES-256-GCM + Ed25519, everything client-side |
+| **🔒 zkVault** | NFT-based lending vault for yield and borrowing |
+| **🎁 Promises** | Time-locked token locks on Monad testnet (gifts/approvals) |
+| **⛓️ Multi-Chain** | Solana + EVM wallet support via Reown AppKit |
+| **🛡️ Zero-Knowledge** | AES-256-GCM + Ed25519, everything client-side |
 | **⏰ Dead Man's Switch** | Automated inactivity triggers for inheritance |
 | **👥 Multi-Party** | n-of-k threshold scheme for distributed trust |
 | **📁 File Encryption** | Secure any file type with threshold decryption |
 | **🌐 Fully Decentralized** | No servers, no accounts, no tracking |
-| **👛 Wallet Native** | Connect your Solana wallet, no new keys needed |
+| **👛 Wallet Native** | Connect your Solana or EVM wallet, no new keys needed |
 
 ## 🎨 Design
 
@@ -43,6 +46,11 @@ A decentralized, zero-knowledge platform for crypto inheritance and private tran
 | **shadcn/ui** | Component library |
 | **Framer Motion** | Animations |
 | **pnpm** | Package manager |
+| **Reown AppKit** | Multi-chain wallet connection (Solana + EVM) |
+| **Wagmi / Viem** | EVM chain interaction |
+| **Ethers** | EVM contract calls and utilities |
+| **Hardhat** | Solidity development and testing |
+| **Solidity** | RektPromise smart contract |
 | **Web Crypto API** | Cryptography (Ed25519, AES-256-GCM, SHA-256) |
 | **Privacy Cash SDK** | Private transactions on Solana |
 | **@lightprotocol/hasher.rs** | ZK proof generation |
@@ -51,33 +59,37 @@ A decentralized, zero-knowledge platform for crypto inheritance and private tran
 
 ```
 rektsafe/
-├── app/                   # Next.js app directory
-│   ├── zksig/            # zkSig - Threshold signatures (TSS/DMS)
-│   │   ├── components/   # Split, Encrypt, Decrypt, Sign, Verify tabs
-│   │   └── context/      # TSS state management
-│   ├── zksend/           # zkSend - Private transfers (shield/send/unshield)
-│   ├── privacy/          # Privacy policy page
-│   ├── terms/            # Terms of service page
-│   ├── globals.css       # Global styles + cypherpunk theme
-│   ├── layout.tsx        # Root layout
-│   └── page.tsx          # Home page
-├── components/           # React components
-│   ├── navbar.tsx        # Navigation with glitch effects
-│   ├── footer.tsx        # Minimal footer
-│   ├── hero.tsx          # Animated hero section
-│   ├── features.tsx      # Feature cards
-│   ├── how-it-works.tsx  # Process steps
-│   ├── tech-stack.tsx    # Technology showcase
-│   ├── wallet-guard.tsx  # Wallet auth guard
-│   ├── wallet-session-provider.tsx  # Session management
-│   └── ui/               # shadcn/ui components
-├── lib/                  # Utilities and polyfills
+├── app/                  # Next.js app directory
+│   ├── zksig/           # zkSig - Threshold signatures (TSS/DMS)
+│   ├── zksend/          # zkSend - Private transfers on Solana
+│   ├── zkvault/         # zkVault - NFT-based lending vault
+│   ├── promises/        # Promises - Time-locked token locks on Monad Testnet
+│   ├── privacy/         # Privacy policy page
+│   ├── terms/           # Terms of service page
+│   ├── globals.css      # Global styles + cypherpunk theme
+│   ├── layout.tsx       # Root layout
+│   └── page.tsx         # Home page
+├── components/          # React components
+│   ├── navbar.tsx       # Navigation with wallet status
+│   ├── footer.tsx       # Minimal footer
+│   ├── hero.tsx         # Animated hero section
+│   ├── features.tsx     # Feature cards
+│   ├── how-it-works.tsx # Process steps
+│   ├── tech-stack.tsx   # Technology showcase
+│   ├── wallet-guard.tsx # Wallet auth guard
+│   ├── evm-guard.tsx    # EVM-specific guard for Promises
+│   ├── connect-wallet-button.tsx # Multi-chain connect button
+│   └── ui/              # shadcn/ui components
+├── contracts/           # Solidity contracts
+│   └── RektPromise.sol
+├── test/                # Hardhat contract tests
+├── hardhat.config.cjs   # Hardhat configuration
+├── lib/                 # Utilities and polyfills
 │   ├── browser-polyfills/ # Node.js polyfills for browser
-│   ├── wallet-session.ts  # Wallet session management
-│   └── utils.ts          # Utility functions
-├── public/wasm/          # WASM files for ZK proofs
-├── .github/workflows/    # GitHub Actions
-│   └── deploy.yml        # Deploy to GitHub Pages
+│   └── utils.ts         # Utility functions
+├── public/wasm/         # WASM files for ZK proofs
+├── .github/workflows/   # GitHub Actions
+│   └── deploy.yml       # Deploy to GitHub Pages
 └── package.json
 ```
 
@@ -90,17 +102,30 @@ rektsafe/
 
 ### Environment Variables
 
-Create a `.env` file:
+Create a `.env` file from `.env.example`:
 
 ```bash
-# Required: Get from https://cloud.reown.com
+# Required: Reown AppKit project ID
+# Get yours at: https://cloud.reown.com
 NEXT_PUBLIC_REOWN_PROJECT_ID=your_project_id
 
-# Required: Get from https://helius.dev
+# Required: Helius RPC for Solana / zkSend balance fetching
 NEXT_PUBLIC_HELIUS_RPC=https://mainnet.helius-rpc.com/?api-key=your_key
 
 # Optional: Custom Solana RPC fallback
 NEXT_PUBLIC_SOLANA_RPC=https://api.mainnet-beta.solana.com
+
+# Optional: zkVault multisig deposit address
+NEXT_PUBLIC_VAULT_ADDRESS=your_multisig_vault_address
+
+# Optional: Supabase for zkVault request storage (uses mock storage if not set)
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Promises (EVM / Monad Testnet)
+NEXT_PUBLIC_MONAD_RPC_URL=https://testnet-rpc.monad.xyz
+NEXT_PUBLIC_REKTPROMISE_CONTRACT_ADDRESS=your_contract_address
+NEXT_PUBLIC_MONAD_CHAIN_ID=10143
 ```
 
 ### Installation
@@ -114,6 +139,9 @@ pnpm dev
 
 # Build for production
 pnpm build
+
+# Serve the static production build (uses `npx serve`)
+pnpm start
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the app.
@@ -142,9 +170,17 @@ Push to `main` branch triggers automatic deployment via GitHub Actions.
 
 - **Home** (`/`) - Landing page with features and how it works
 - **zkSig** (`/zksig/`) - Threshold signatures - split keys, encrypt, sign & verify
-- **zkSend** (`/zksend/`) - Private asset shielding and transfers
+- **zkSend** (`/zksend/`) - Private asset shielding and transfers on Solana
+- **zkVault** (`/zkvault/`) - NFT-based lending vault positions and yield
+- **Promises** (`/promises/`) - Time-locked token locks on EVM networks
 - **Privacy** (`/privacy/`) - Privacy policy
 - **Terms** (`/terms/`) - Terms of service
+
+## ⛓️ Wallet & Networks
+
+- Connect a **Solana** wallet (Phantom, Solflare, etc.) to use `zkSig`, `zkSend`, and `zkVault`.
+- Connect an **EVM** wallet (MetaMask, WalletConnect, etc.) on **Monad Testnet** to use `Promises`.
+- The navbar shows the connected address and current native balance for the selected network.
 
 ## 🎨 Theme Colors
 

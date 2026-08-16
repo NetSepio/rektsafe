@@ -11,6 +11,7 @@ import {
 import { useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
 import type { Provider } from "@reown/appkit-adapter-solana/react";
 import { PublicKey } from "@solana/web3.js";
+import { useWalletType } from "@/hooks/use-wallet-type";
 import {
   initializeWalletSession,
   getWalletSession,
@@ -36,6 +37,7 @@ const WalletSessionContext = createContext<
 
 export function WalletSessionProvider({ children }: { children: ReactNode }) {
   const { isConnected, address } = useAppKitAccount();
+  const walletType = useWalletType();
   const { walletProvider } = useAppKitProvider<Provider>("solana");
 
   const [session, setSession] = useState<WalletSession | null>(null);
@@ -65,6 +67,11 @@ export function WalletSessionProvider({ children }: { children: ReactNode }) {
   }, [isConnected, address]);
 
   const initializeSession = useCallback(async () => {
+    if (walletType === "evm") {
+      setIsInitialized(true);
+      return;
+    }
+
     if (!walletProvider || !address) {
       setError("Wallet not connected");
       return;

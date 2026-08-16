@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Shield, Lock, Zap, Terminal } from "lucide-react";
+import { ArrowRight, Shield, Lock, Zap, Terminal, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAppKitAccount } from "@reown/appkit/react";
+import { useWalletType } from "@/hooks/use-wallet-type";
+import { ConnectWalletButton } from "@/components/connect-wallet-button";
 
 function ParticleField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -160,6 +162,7 @@ export function Hero() {
     offset: ["start start", "end start"],
   });
   const { isConnected } = useAppKitAccount();
+  const walletType = useWalletType();
 
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
@@ -190,7 +193,7 @@ export function Hero() {
             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
           </span>
           <span className="text-xs font-mono text-primary uppercase tracking-widest">
-            zkSig + zkSend — Zero-Knowledge Crypto Tools
+            Privacy-First Crypto Tools
           </span>
         </motion.div>
 
@@ -200,9 +203,9 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 leading-tight"
         >
-          <span className="block text-foreground">Secure Your</span>
+          <span className="block text-foreground">Your Crypto.</span>
           <span className="block gradient-text mt-2">
-            <GlitchText text="CRYPTO PRIVACY" />
+            <GlitchText text="YOUR LEGACY" />
           </span>
         </motion.h1>
 
@@ -213,7 +216,7 @@ export function Hero() {
           className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-4 font-mono"
         >
           <TypeWriter
-            text="// Split keys. Encrypt files. Send privately. No servers."
+            text="// Split keys. Encrypt files. Lock Promises. Send privately. No servers."
             delay={40}
           />
         </motion.p>
@@ -224,8 +227,9 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.5 }}
           className="text-sm text-muted-foreground/60 max-w-xl mx-auto mb-10"
         >
-          Threshold signatures with zkSig. Private transfers with zkSend. All
-          client-side. Your keys, your data, your control.
+          Threshold signatures with zkSig. Private transfers with zkSend.
+          Time-locked Promises on Monad Testnet. All client-side. Your keys,
+          your data, your control.
         </motion.p>
 
         <motion.div
@@ -234,14 +238,23 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          {!isConnected && (
-            <Link href="/zksig/">
+          {!isConnected ? (
+            <ConnectWalletButton
+              size="lg"
+              className="group bg-primary text-primary-foreground hover:bg-primary/90 glow-primary px-8 py-6 text-lg font-mono"
+            >
+              <Terminal className="w-5 h-5 mr-2" />
+              Connect Wallet
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            </ConnectWalletButton>
+          ) : (
+            <Link href={walletType === "evm" ? "/promises/" : "/zksig/"}>
               <Button
                 size="lg"
                 className="group bg-primary text-primary-foreground hover:bg-primary/90 glow-primary px-8 py-6 text-lg font-mono"
               >
                 <Terminal className="w-5 h-5 mr-2" />
-                Initialize
+                {walletType === "evm" ? "Open Promises" : "Open zkSig"}
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
@@ -261,11 +274,12 @@ export function Hero() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
-          className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto"
+          className="mt-20 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8 max-w-4xl mx-auto"
         >
           {[
             { icon: Shield, label: "Military-Grade", value: "AES-256" },
             { icon: Lock, label: "Threshold", value: "TSS Scheme" },
+            { icon: Gift, label: "Time-Locked", value: "Promises" },
             { icon: Zap, label: "Fully", value: "Decentralized" },
           ].map((stat, index) => (
             <motion.div

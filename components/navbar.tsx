@@ -8,7 +8,6 @@ import {
   Shield,
   Menu,
   X,
-  Terminal,
   Lock,
   Wallet,
   LogOut,
@@ -16,10 +15,13 @@ import {
   Home,
   KeyRound,
   Zap,
+  Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAppKitAccount, useDisconnect } from "@reown/appkit/react";
+import { useAppKitAccount, useDisconnect, useAppKitNetwork, useAppKitBalance } from "@reown/appkit/react";
 import { useSnsName } from "@/hooks/use-sns-name";
+import { useWalletType } from "@/hooks/use-wallet-type";
+import { ConnectWalletButton } from "@/components/connect-wallet-button";
 
 interface NavLink {
   href: string;
@@ -27,18 +29,70 @@ interface NavLink {
   icon: React.ElementType;
 }
 
-const navLinks: NavLink[] = [
+const solanaNavLinks: NavLink[] = [
   { href: "/", label: "Home", icon: Home },
   { href: "/zksig/", label: "zkSig", icon: KeyRound },
   { href: "/zksend/", label: "zkSend", icon: Zap },
   { href: "/zkvault/", label: "zkVault", icon: Wallet },
 ];
 
+const evmNavLinks: NavLink[] = [
+  { href: "/", label: "Home", icon: Home },
+  { href: "/promises/", label: "Promises", icon: Gift },
+];
+
+function formatBalance(value: string, maxDecimals = 4) {
+  const num = Number(value);
+  if (Number.isNaN(num)) return value;
+  if (num === 0) return "0";
+  const threshold = 1 / 10 ** maxDecimals;
+  if (num > 0 && num < threshold) {
+    return `<${threshold.toFixed(maxDecimals).replace(/\.?0+$/, "")}`;
+  }
+  return num.toLocaleString(undefined, { maximumFractionDigits: maxDecimals });
+}
+
 // Compact wallet status component for navbar
 function WalletStatus() {
   const { isConnected, address } = useAppKitAccount();
   const { disconnect } = useDisconnect();
   const { snsName, isLoading } = useSnsName(address);
+  const { caipNetwork } = useAppKitNetwork();
+  const { fetchBalance } = useAppKitBalance();
+  const [balanceText, setBalanceText] = useState<string | null>(null);
+  const [isBalanceLoading, setIsBalanceLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isConnected || !address || !caipNetwork) {
+      setBalanceText(null);
+      return;
+    }
+
+    let active = true;
+    setIsBalanceLoading(true);
+
+    fetchBalance()
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (data && !error) {
+          setBalanceText(
+            `${formatBalance(data.balance)} ${data.symbol}`
+          );
+        } else {
+          setBalanceText(null);
+        }
+      })
+      .catch(() => {
+        if (active) setBalanceText(null);
+      })
+      .finally(() => {
+        if (active) setIsBalanceLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isConnected, address, caipNetwork?.caipNetworkId, fetchBalance]);
 
   if (!isConnected || !address) return null;
 
@@ -60,6 +114,14 @@ function WalletStatus() {
             <span className="text-xs text-muted-foreground font-mono sm:hidden">
               {address.slice(0, 4)}...{address.slice(-4)}
             </span>
+            {balanceText && (
+              <span className="text-xs text-primary/80 font-mono">
+                · {balanceText}
+              </span>
+            )}
+            {isBalanceLoading && !balanceText && (
+              <span className="text-xs text-primary/80 font-mono">· —</span>
+            )}
           </>
         ) : (
           <>
@@ -67,6 +129,14 @@ function WalletStatus() {
             <span className="text-sm font-mono text-primary">
               {address.slice(0, 4)}...{address.slice(-4)}
             </span>
+            {balanceText && (
+              <span className="text-xs text-primary/80 font-mono">
+                · {balanceText}
+              </span>
+            )}
+            {isBalanceLoading && !balanceText && (
+              <span className="text-xs text-primary/80 font-mono">· —</span>
+            )}
           </>
         )}
       </div>
@@ -92,11 +162,10 @@ export function Navbar() {
   const [hoveredLink, setHoveredLink] = useState<string | null>(null);
   const pathname = usePathname();
   const { isConnected } = useAppKitAccount();
+  const walletType = useWalletType();
 
-  // Check if we're on the zksig page
-  const isZksigPage = pathname === "/zksig" || pathname === "/zksig/";
+  const navLinks = walletType === "evm" ? evmNavLinks : solanaNavLinks;
   // Show Connect Wallet button only when wallet is NOT connected
-  // (on any page - homepage or vault page)
   const showEnterVaultButton = !isConnected;
 
   useEffect(() => {
@@ -255,18 +324,16 @@ export function Navbar() {
             {/* Wallet connection status - shown when connected */}
             <WalletStatus />
 
-            {/* Connect Wallet button - hidden when on zksig page and connected */}
+            {/* Connect Wallet button - hidden when connected */}
             {showEnterVaultButton && (
-              <Link href="/zksig/">
-                <Button
-                  variant="default"
-                  size="lg"
-                  className="bg-primary/10 border border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 glow-primary text-base px-6 py-2.5 hover:scale-105 active:scale-95 font-semibold"
-                >
-                  <Wallet className="w-4 h-4 mr-2" />
-                  Connect Wallet
-                </Button>
-              </Link>
+              <ConnectWalletButton
+                variant="default"
+                size="lg"
+                className="bg-primary/10 border border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 glow-primary text-base px-6 py-2.5 hover:scale-105 active:scale-95 font-semibold"
+              >
+                <Wallet className="w-4 h-4 mr-2" />
+                Connect Wallet
+              </ConnectWalletButton>
             )}
           </motion.div>
 
@@ -375,18 +442,15 @@ export function Navbar() {
                   transition={{ delay: 0.3 }}
                   className="pt-2"
                 >
-                  <Link
-                    href="/zksig/"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Button
+                  <div onClick={() => setIsMobileMenuOpen(false)}>
+                    <ConnectWalletButton
                       size="lg"
                       className="w-full bg-primary/10 border border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground text-base py-4 font-semibold"
                     >
                       <Wallet className="w-5 h-5 mr-2" />
                       Connect Wallet
-                    </Button>
-                  </Link>
+                    </ConnectWalletButton>
+                  </div>
                 </motion.div>
               )}
             </div>
