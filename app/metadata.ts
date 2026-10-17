@@ -3,7 +3,13 @@ import { Metadata } from "next";
 export const defaultMetadata: Metadata = {
   title: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Yield",
   description:
-    "rektSafe: Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault). For Cypherpunks, By Cypherpunks.",
+    "rektSafe: Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault). RektSafe Vault, a hardware wallet, is launching soon. For Cypherpunks, By Cypherpunks.",
+};
+
+export const walletMetadata: Metadata = {
+  title: "RektSafe Vault",
+  description:
+    "RektSafe Vault is a coming-soon hardware wallet for crypto self-custody, passkeys, and on-device transaction warnings. The public route is /wallet/.",
 };
 
 export const vaultMetadata: Metadata = {

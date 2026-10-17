@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Shield, Lock, Zap, Terminal, Gift } from "lucide-react";
+import { ArrowRight, Shield, Lock, Zap, Terminal, Gift, Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAppKitAccount } from "@reown/appkit/react";
@@ -268,6 +268,22 @@ export function Hero() {
               Learn More
             </Button>
           </a>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.7 }}
+          className="mt-6"
+        >
+          <Link
+            href="/wallet/"
+            className="inline-flex items-center gap-2 text-sm font-mono text-muted-foreground hover:text-[#00d4ff] transition-colors"
+          >
+            <Cpu className="w-4 h-4 text-[#00d4ff]" />
+            RektSafe Vault · launching soon
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </motion.div>
 
         <motion.div

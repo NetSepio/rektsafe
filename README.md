@@ -20,6 +20,7 @@ A decentralized, zero-knowledge platform for crypto inheritance, private transfe
 | **🕵️ zkSend** | Private transfers—shield, send, and unshield Solana assets |
 | **🔒 zkVault** | NFT-based lending vault for yield and borrowing |
 | **🎁 Promises** | Time-locked token locks on Monad testnet (gifts/approvals) |
+| **👛 RektSafe Vault** | Coming-soon hardware wallet at `/wallet/` — self-custody, passkeys, and transaction warnings |
 | **⛓️ Multi-Chain** | Solana + EVM wallet support via Reown AppKit |
 | **🛡️ Zero-Knowledge** | AES-256-GCM + Ed25519, everything client-side |
 | **⏰ Dead Man's Switch** | Automated inactivity triggers for inheritance |
@@ -64,6 +65,7 @@ rektsafe/
 │   ├── zksend/          # zkSend - Private transfers on Solana
 │   ├── zkvault/         # zkVault - NFT-based lending vault
 │   ├── promises/        # Promises - Time-locked token locks on Monad Testnet
+│   ├── wallet/          # RektSafe Vault - coming-soon hardware wallet (nav label: Wallet)
 │   ├── privacy/         # Privacy policy page
 │   ├── terms/           # Terms of service page
 │   ├── globals.css      # Global styles + cypherpunk theme
@@ -74,6 +76,7 @@ rektsafe/
 │   ├── footer.tsx       # Minimal footer
 │   ├── hero.tsx         # Animated hero section
 │   ├── features.tsx     # Feature cards
+│   ├── hardware-teaser.tsx # Home section linking to RektSafe Vault
 │   ├── how-it-works.tsx # Process steps
 │   ├── tech-stack.tsx   # Technology showcase
 │   ├── wallet-guard.tsx # Wallet auth guard
@@ -173,8 +176,21 @@ Push to `main` branch triggers automatic deployment via GitHub Actions.
 - **zkSend** (`/zksend/`) - Private asset shielding and transfers on Solana
 - **zkVault** (`/zkvault/`) - NFT-based lending vault positions and yield
 - **Promises** (`/promises/`) - Time-locked token locks on EVM networks
+- **Wallet** (`/wallet/`) - RektSafe Vault, a coming-soon hardware security device. The navbar label is Wallet. This is not zkVault.
 - **Privacy** (`/privacy/`) - Privacy policy
 - **Terms** (`/terms/`) - Terms of service
+
+### RektSafe Vault
+
+`/wallet/` is a launch page, not a checkout. It describes a hardware device that combines:
+
+- Crypto self-custody for Ethereum, Solana, and supported assets, with keys kept in secure hardware
+- Identity tools: FIDO2/WebAuthn passkeys, hardware 2FA, and TOTP/HOTP codes. Encrypted password storage is planned, not shipped
+- An AI Guardian that turns supported signing requests into plain-language warnings on the device
+
+The page also outlines two stages. V1 uses cloud-assisted analysis through a connected phone or laptop, with signing still on the device. V2 is compact on-device AI for offline explanations. Both versions share the proposed ESP32-S3 + NXP SE050E2 foundation, with a screen, physical approval buttons, and USB-C.
+
+The EAL5+/EAL6+ line on the page is an evaluation pathway. The device is not certified yet. There is no price or ship date on the site. Launch news goes out on [X](https://x.com/netsepio) and [Telegram](https://t.me/RektSafeOfficial).
 
 ## ⛓️ Wallet & Networks
 

@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-**rektSafe** is a decentralized dead man's switch application for crypto and data inheritance. It uses threshold signature schemes (TSS) to securely pass digital assets to beneficiaries, and now includes private transfers via zkSend.
+**rektSafe** is a decentralized dead man's switch application for crypto and data inheritance. It uses threshold signature schemes (TSS) to securely pass digital assets to beneficiaries, and now includes private transfers via zkSend, time-locked Promises, and a coming-soon hardware wallet called RektSafe Vault.
 
 - **Stack**: Next.js 15 + React 19 + TypeScript + Tailwind CSS
 - **Crypto**: Web Crypto API (Ed25519, AES-256-GCM, SHA-256), Privacy Cash SDK
@@ -50,6 +50,10 @@ rektsafe/
 │   │   │   └── vault-context.tsx
 │   │   └── lib/           # Supabase client & utilities
 │   │       └── supabase.ts
+│   ├── promises/          # Time-locked token locks on Monad Testnet
+│   ├── wallet/            # RektSafe Vault launch page (route /wallet/, nav label Wallet)
+│   │   ├── page.tsx       # Coming-soon hardware wallet content
+│   │   └── layout.tsx     # Page metadata
 │   ├── privacy/           # Privacy policy page
 │   ├── terms/             # Terms of service page
 │   ├── globals.css        # Cypherpunk theme variables
@@ -61,6 +65,7 @@ rektsafe/
 │   ├── footer.tsx         # Minimal footer
 │   ├── hero.tsx           # Animated hero section
 │   ├── features.tsx       # Feature cards
+│   ├── hardware-teaser.tsx # Home teaser linking to /wallet/
 │   ├── how-it-works.tsx   # Process steps with tabs
 │   ├── wallet-provider.tsx # Wallet connection provider
 │   ├── wallet-session-provider.tsx # Session management
@@ -202,6 +207,8 @@ const nextConfig = {
 | `/zksig/` | zkSig - Threshold signatures (TSS/DMS) |
 | `/zksend/` | Private transfers - zkSend app |
 | `/zkvault/` | zkVault - NFT-based lending vault |
+| `/promises/` | Promises - time-locked token locks on Monad Testnet |
+| `/wallet/` | RektSafe Vault - coming-soon hardware wallet. Navbar label is **Wallet**. Do not add a footer link for it, and do not label any link just "Vault" (that collides with zkVault). |
 | `/privacy/` | Privacy policy |
 | `/terms/` | Terms of service |
 
@@ -231,6 +238,9 @@ Static files are generated in `/dist/`:
 - `index.html` - Home page
 - `zksig/index.html` - zkSig threshold signatures
 - `zksend/index.html` - Private transfers
+- `zkvault/index.html` - NFT lending vault
+- `promises/index.html` - Time-locked promises
+- `wallet/index.html` - RektSafe Vault launch page
 - `privacy/index.html` - Privacy page
 - `terms/index.html` - Terms page
 - `_next/` - JS/CSS assets
@@ -328,6 +338,21 @@ function MyComponent() {
   return <Button>Connect Wallet</Button>;
 }
 ```
+
+## RektSafe Vault - Hardware Wallet
+
+Launch page at `app/wallet/`. Public route is `/wallet/`. The navbar calls the link **Wallet** and shows a Soon badge. It is a separate product from zkVault.
+
+The page is informational. There is no checkout, price, or ship date. Keep these claims exact:
+
+- Crypto self-custody for Ethereum, Solana, and supported assets. Keys stay in secure hardware. Signing needs physical confirmation.
+- Identity: FIDO2/WebAuthn for compatible accounts, hardware 2FA, and TOTP/HOTP codes. Encrypted password storage is planned, not available.
+- AI Guardian explains supported signing requests on the device. The sample Ethereum unlimited-approval screen is illustrative. Transaction details are verified independently; AI adds context.
+- V1 is cloud-assisted analysis through a phone or laptop, with signing on the device. V2 is on-device AI for offline explanations of supported operations.
+- Proposed hardware foundation: ESP32-S3 + NXP SE050E2, with a screen, physical approval buttons, and USB-C.
+- EAL5+/EAL6+ is an evaluation pathway. Certification is a development objective, not an existing certification.
+
+Home discovery lives in `components/hardware-teaser.tsx` and a hero link. Do not add a footer link for this page.
 
 ## zkVault - NFT-Based Lending Vault
 
@@ -450,4 +475,4 @@ The SDK requires Node.js modules that need polyfills:
 
 ---
 
-Last updated: February 2026
+Last updated: October 2026

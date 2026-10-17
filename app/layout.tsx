@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     template: "%s | rektSafe",
   },
   description:
-    "rektSafe: Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault). For Cypherpunks, By Cypherpunks.",
+    "rektSafe: Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault). RektSafe Vault, a hardware wallet, is launching soon. For Cypherpunks, By Cypherpunks.",
   keywords: [
     "crypto",
     "dead man's switch",
@@ -43,6 +43,7 @@ export const metadata: Metadata = {
     "digital legacy",
     "crypto inheritance",
     "secure vault",
+    "hardware wallet",
   ],
   authors: [{ name: "rektSafe", url: "https://rektsafe.com" }],
   creator: "rektSafe",
@@ -55,7 +56,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Yield",
     description:
-      "Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault). For Cypherpunks, By Cypherpunks.",
+      "Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault). RektSafe Vault, a hardware wallet, is launching soon.",
     type: "website",
     url: "https://rektsafe.com",
     siteName: "rektSafe",
@@ -73,7 +74,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Yield",
     description:
-      "Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault).",
+      "Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault). RektSafe Vault is launching soon.",
     creator: "@rektsafe",
     images: ["/og-image.png"],
   },

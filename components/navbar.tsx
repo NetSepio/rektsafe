@@ -16,6 +16,7 @@ import {
   KeyRound,
   Zap,
   Gift,
+  Cpu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppKitAccount, useDisconnect, useAppKitNetwork, useAppKitBalance } from "@reown/appkit/react";
@@ -29,16 +30,24 @@ interface NavLink {
   icon: React.ElementType;
 }
 
+const hardwareLink: NavLink = {
+  href: "/wallet/",
+  label: "Wallet",
+  icon: Cpu,
+};
+
 const solanaNavLinks: NavLink[] = [
   { href: "/", label: "Home", icon: Home },
   { href: "/zksig/", label: "zkSig", icon: KeyRound },
   { href: "/zksend/", label: "zkSend", icon: Zap },
   { href: "/zkvault/", label: "zkVault", icon: Wallet },
+  hardwareLink,
 ];
 
 const evmNavLinks: NavLink[] = [
   { href: "/", label: "Home", icon: Home },
   { href: "/promises/", label: "Promises", icon: Gift },
+  hardwareLink,
 ];
 
 function formatBalance(value: string, maxDecimals = 4) {
@@ -228,7 +237,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link, index) => {
               const isActive =
                 pathname === link.href || pathname === link.href.slice(0, -1);
@@ -247,7 +256,7 @@ export function Navbar() {
                   <Link
                     href={link.href}
                     className={`
-                      relative flex items-center gap-2 px-5 py-3 text-base font-semibold
+                      relative flex items-center gap-2 px-3 py-2.5 xl:px-4 text-sm xl:text-base font-semibold
                       rounded-xl transition-all duration-300 overflow-hidden group
                       ${
                         isActive
@@ -280,6 +289,11 @@ export function Navbar() {
 
                     {/* Label */}
                     <span className="relative z-10">{link.label}</span>
+                    {link.href === "/wallet/" && (
+                      <span className="relative z-10 text-[10px] uppercase tracking-wider text-[#00d4ff] border border-[#00d4ff]/40 rounded-full px-1.5 py-0.5">
+                        Soon
+                      </span>
+                    )}
 
                     {/* Active indicator dot */}
                     {isActive && (
@@ -319,7 +333,7 @@ export function Navbar() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.5 }}
-            className="hidden md:flex items-center gap-3"
+            className="hidden lg:flex items-center gap-3"
           >
             {/* Wallet connection status - shown when connected */}
             <WalletStatus />
@@ -341,7 +355,7 @@ export function Navbar() {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2.5 text-foreground hover:bg-primary/10 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/20"
+            className="lg:hidden p-2.5 text-foreground hover:bg-primary/10 rounded-xl transition-all duration-300 border border-transparent hover:border-primary/20"
           >
             <AnimatePresence mode="wait">
               {isMobileMenuOpen ? (
@@ -378,7 +392,7 @@ export function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-background/95 backdrop-blur-xl border-b border-border overflow-hidden"
+            className="lg:hidden bg-background/95 backdrop-blur-xl border-b border-border overflow-hidden"
           >
             <div className="px-4 py-4 space-y-2">
               {navLinks.map((link, index) => {
@@ -411,6 +425,11 @@ export function Navbar() {
                       <span className="text-lg font-semibold">
                         {link.label}
                       </span>
+                      {link.href === "/wallet/" && (
+                        <span className="text-[10px] uppercase tracking-wider text-[#00d4ff] border border-[#00d4ff]/40 rounded-full px-1.5 py-0.5">
+                          Soon
+                        </span>
+                      )}
                       {isActive && (
                         <motion.div
                           layoutId="mobileActiveIndicator"
