@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A decentralized, zero-knowledge platform for crypto inheritance, private transfers, and time-locked promises. Split your keys with threshold signatures, encrypt sensitive data, transfer assets privately, and lock tokens for beneficiaries on Solana or EVM networks — all client-side, no servers, no tracking.
+A decentralized, zero-knowledge platform for crypto inheritance and private transfers. Split your keys with threshold signatures, encrypt sensitive data, and transfer assets privately on Solana or Ethereum — all client-side, no servers, no tracking.
 
 ![Cypherpunk Theme](https://img.shields.io/badge/Theme-Cypherpunk-00ff88)
 ![Crypto](https://img.shields.io/badge/Crypto-AES--256%2FEd25519-00d4ff)
@@ -17,9 +17,8 @@ A decentralized, zero-knowledge platform for crypto inheritance, private transfe
 | Feature | Description |
 |---------|-------------|
 | **🔐 zkSig** | Threshold signatures—split keys, encrypt files, sign & verify messages |
-| **🕵️ zkSend** | Private transfers—shield, send, and unshield Solana assets |
+| **🕵️ zkSend** | Private transfers—shield, send, and unshield on Solana (SOL, USDC, USDT) or Ethereum (ETH, USDT) |
 | **🔒 zkVault** | NFT-based lending vault for yield and borrowing |
-| **🎁 Promises** | Time-locked token locks on Monad testnet (gifts/approvals) |
 | **👛 RektSafe Vault** | Coming-soon hardware wallet at `/wallet/` — self-custody, passkeys, and transaction warnings |
 | **⛓️ Multi-Chain** | Solana + EVM wallet support via Reown AppKit |
 | **🛡️ Zero-Knowledge** | AES-256-GCM + Ed25519, everything client-side |
@@ -49,11 +48,9 @@ A decentralized, zero-knowledge platform for crypto inheritance, private transfe
 | **pnpm** | Package manager |
 | **Reown AppKit** | Multi-chain wallet connection (Solana + EVM) |
 | **Wagmi / Viem** | EVM chain interaction |
-| **Ethers** | EVM contract calls and utilities |
-| **Hardhat** | Solidity development and testing |
-| **Solidity** | RektPromise smart contract |
+| **Ethers** | EVM transaction signing and utilities |
 | **Web Crypto API** | Cryptography (Ed25519, AES-256-GCM, SHA-256) |
-| **Privacy Cash SDK** | Private transactions on Solana |
+| **Privacy Cash SDK** | Private transactions on Solana and Ethereum |
 | **@lightprotocol/hasher.rs** | ZK proof generation |
 
 ## 📁 Project Structure
@@ -62,9 +59,8 @@ A decentralized, zero-knowledge platform for crypto inheritance, private transfe
 rektsafe/
 ├── app/                  # Next.js app directory
 │   ├── zksig/           # zkSig - Threshold signatures (TSS/DMS)
-│   ├── zksend/          # zkSend - Private transfers on Solana
+│   ├── zksend/          # zkSend - Private transfers on Solana and Ethereum
 │   ├── zkvault/         # zkVault - NFT-based lending vault
-│   ├── promises/        # Promises - Time-locked token locks on Monad Testnet
 │   ├── wallet/          # RektSafe Vault - coming-soon hardware wallet (nav label: Wallet)
 │   ├── privacy/         # Privacy policy page
 │   ├── terms/           # Terms of service page
@@ -80,13 +76,8 @@ rektsafe/
 │   ├── how-it-works.tsx # Process steps
 │   ├── tech-stack.tsx   # Technology showcase
 │   ├── wallet-guard.tsx # Wallet auth guard
-│   ├── evm-guard.tsx    # EVM-specific guard for Promises
 │   ├── connect-wallet-button.tsx # Multi-chain connect button
 │   └── ui/              # shadcn/ui components
-├── contracts/           # Solidity contracts
-│   └── RektPromise.sol
-├── test/                # Hardhat contract tests
-├── hardhat.config.cjs   # Hardhat configuration
 ├── lib/                 # Utilities and polyfills
 │   ├── browser-polyfills/ # Node.js polyfills for browser
 │   └── utils.ts         # Utility functions
@@ -124,11 +115,6 @@ NEXT_PUBLIC_VAULT_ADDRESS=your_multisig_vault_address
 # Optional: Supabase for zkVault request storage (uses mock storage if not set)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-# Promises (EVM / Monad Testnet)
-NEXT_PUBLIC_MONAD_RPC_URL=https://testnet-rpc.monad.xyz
-NEXT_PUBLIC_REKTPROMISE_CONTRACT_ADDRESS=your_contract_address
-NEXT_PUBLIC_MONAD_CHAIN_ID=10143
 ```
 
 ### Installation
@@ -173,9 +159,8 @@ Push to `main` branch triggers automatic deployment via GitHub Actions.
 
 - **Home** (`/`) - Landing page with features and how it works
 - **zkSig** (`/zksig/`) - Threshold signatures - split keys, encrypt, sign & verify
-- **zkSend** (`/zksend/`) - Private asset shielding and transfers on Solana
+- **zkSend** (`/zksend/`) - Private shielding and transfers. Solana: SOL, USDC, USDT. Ethereum mainnet: ETH, USDT.
 - **zkVault** (`/zkvault/`) - NFT-based lending vault positions and yield
-- **Promises** (`/promises/`) - Time-locked token locks on EVM networks
 - **Wallet** (`/wallet/`) - RektSafe Vault, a coming-soon hardware security device. The navbar label is Wallet. This is not zkVault.
 - **Privacy** (`/privacy/`) - Privacy policy
 - **Terms** (`/terms/`) - Terms of service
@@ -195,7 +180,7 @@ The EAL5+/EAL6+ line on the page is an evaluation pathway. The device is not cer
 ## ⛓️ Wallet & Networks
 
 - Connect a **Solana** wallet (Phantom, Solflare, etc.) to use `zkSig`, `zkSend`, and `zkVault`.
-- Connect an **EVM** wallet (MetaMask, WalletConnect, etc.) on **Monad Testnet** to use `Promises`.
+- Connect an **EVM** wallet (MetaMask, WalletConnect, etc.) on **Ethereum mainnet** to shield and send ETH or USDT in `zkSend`. Other EVM networks are asked to switch to Ethereum.
 - The navbar shows the connected address and current native balance for the selected network.
 
 ## 🎨 Theme Colors

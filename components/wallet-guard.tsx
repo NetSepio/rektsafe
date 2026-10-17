@@ -1,9 +1,11 @@
 "use client";
 
-import { useAppKitAccount } from "@reown/appkit/react";
+import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import { mainnet } from "@reown/appkit/networks";
 import { useWalletType } from "@/hooks/use-wallet-type";
+import { useIsEthereum } from "@/hooks/use-is-ethereum";
 import { motion } from "framer-motion";
-import { Wallet, Shield, Lock } from "lucide-react";
+import { Wallet, Shield, Lock, Network } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ReactNode, useState, useEffect } from "react";
@@ -12,6 +14,8 @@ import { ConnectWalletButton } from "@/components/connect-wallet-button";
 
 interface WalletGuardProps {
   children: ReactNode;
+  /** zkSend accepts an Ethereum mainnet wallet for shielded ETH and USDT. */
+  allowEthereum?: boolean;
 }
 
 // Wallet connect screen component
@@ -35,9 +39,9 @@ function WalletConnectScreen() {
             <span className="gradient-text">Wallet</span>
           </h1>
           <p className="text-muted-foreground font-mono text-sm max-w-lg mx-auto">
-            Access zkSig for threshold signatures, zkSend for private transfers,
-            or Promises on Monad Testnet. Connect a Solana or EVM wallet to
-            continue.
+            Access zkSig for threshold signatures, zkVault for lending, or
+            zkSend for private transfers on Solana and Ethereum. Connect a
+            Solana or EVM wallet to continue.
           </p>
         </motion.div>
 
@@ -230,6 +234,39 @@ function SessionInitScreen({
   );
 }
 
+function SwitchToEthereumScreen() {
+  const { switchNetwork } = useAppKitNetwork();
+
+  return (
+    <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-background">
+      <div className="max-w-2xl mx-auto text-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/30 mb-4">
+          <Network className="w-4 h-4 text-accent" />
+          <span className="text-xs font-mono text-accent uppercase tracking-wider font-semibold">
+            Ethereum Required
+          </span>
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-3">
+          <span className="text-foreground">Switch to </span>
+          <span className="gradient-text">Ethereum</span>
+        </h1>
+        <p className="text-muted-foreground font-mono text-sm max-w-lg mx-auto mb-6">
+          Shielded transfers for EVM wallets run on Ethereum mainnet, for ETH
+          and USDT. Switch networks to continue.
+        </p>
+        <Button
+          size="lg"
+          onClick={() => switchNetwork(mainnet)}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground font-mono"
+        >
+          <Network className="w-5 h-5 mr-2" />
+          Switch to Ethereum
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // Wrong wallet type screen
 function WrongWalletScreen() {
   return (
@@ -247,8 +284,8 @@ function WrongWalletScreen() {
         </h1>
         <p className="text-muted-foreground font-mono text-sm max-w-lg mx-auto">
           This feature is built for Solana. An EVM wallet is connected.
-          Disconnect it and connect a Solana wallet to continue, or head to
-          Promises for Monad Testnet.
+          Disconnect it and connect a Solana wallet to continue, or open zkSend
+          for shielded ETH and USDT.
         </p>
       </div>
     </div>
@@ -256,25 +293,74 @@ function WrongWalletScreen() {
 }
 
 // Inner component that uses AppKit hooks - only rendered client-side
-function WalletGuardInner({ children }: WalletGuardProps) {
+function WalletGuardInner({
+  children,
+  allowEthereum = false,
+}: WalletGuardProps) {
   const { isConnected } = useAppKitAccount();
   const walletType = useWalletType();
-  const { isInitialized, isLoading, error, initializeSession } =
-    useWalletSession();
+  const isEthereum = useIsEthereum();
+  const {
+    isInitialized,
+    isLoading,
+    error,
+    evmSignature,
+    initializeSession,
+    initializeEvmSession,
+  } = useWalletSession();
 
   // Initialize session when wallet is connected but session is not initialized
   useEffect(() => {
+    if (walletType === "evm") return;
     if (isConnected && !isInitialized && !isLoading && !error) {
       initializeSession();
     }
-  }, [isConnected, isInitialized, isLoading, error, initializeSession]);
+  }, [
+    walletType,
+    isConnected,
+    isInitialized,
+    isLoading,
+    error,
+    initializeSession,
+  ]);
+
+  useEffect(() => {
+    if (!allowEthereum || walletType !== "evm" || !isEthereum) return;
+    if (isConnected && !evmSignature && !isLoading && !error) {
+      initializeEvmSession();
+    }
+  }, [
+    allowEthereum,
+    walletType,
+    isEthereum,
+    isConnected,
+    evmSignature,
+    isLoading,
+    error,
+    initializeEvmSession,
+  ]);
 
   if (!isConnected) {
     return <WalletConnectScreen />;
   }
 
   if (walletType === "evm") {
-    return <WrongWalletScreen />;
+    if (!allowEthereum) {
+      return <WrongWalletScreen />;
+    }
+    if (!isEthereum) {
+      return <SwitchToEthereumScreen />;
+    }
+    if (!evmSignature) {
+      return (
+        <SessionInitScreen
+          isLoading={isLoading}
+          error={error}
+          onRetry={initializeEvmSession}
+        />
+      );
+    }
+    return <>{children}</>;
   }
 
   // Show loading state while initializing session
@@ -293,7 +379,7 @@ function WalletGuardInner({ children }: WalletGuardProps) {
 }
 
 // Main export component with SSR protection
-export function WalletGuard({ children }: WalletGuardProps) {
+export function WalletGuard({ children, allowEthereum }: WalletGuardProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -345,5 +431,7 @@ export function WalletGuard({ children }: WalletGuardProps) {
     );
   }
 
-  return <WalletGuardInner>{children}</WalletGuardInner>;
+  return (
+    <WalletGuardInner allowEthereum={allowEthereum}>{children}</WalletGuardInner>
+  );
 }

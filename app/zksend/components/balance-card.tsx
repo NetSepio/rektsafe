@@ -16,7 +16,7 @@ import {
 
 export function BalanceCard() {
   const [showBalances, setShowBalances] = useState(true);
-  const { tokens, isLoading, refresh, isSDKInitialized } = useBalances();
+  const { tokens, isLoading, refresh, isSDKInitialized, chain } = useBalances();
   const { address } = useAppKitAccount();
 
   const formatBalance = (balance: number, decimals: number = 4) => {
@@ -79,8 +79,9 @@ export function BalanceCard() {
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
                   <p>
-                    Private balances are encrypted and require Privacy Cash SDK
-                    access. Public balances are fetched from Helius RPC.
+                    {chain === "ethereum"
+                      ? "Private ETH and USDT balances are decrypted in your browser. Public balances are read from Ethereum."
+                      : "Private balances are encrypted and require Privacy Cash SDK access. Public balances are fetched from Helius RPC."}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -161,6 +162,12 @@ export function BalanceCard() {
             </div>
           </div>
         </div>
+        {chain === "ethereum" && (
+          <p className="text-xs text-muted-foreground font-mono mb-4">
+            The USD totals include USDT at $1. ETH is shown as a token
+            balance below and is not converted to dollars.
+          </p>
+        )}
 
         {/* Token Balances Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

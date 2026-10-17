@@ -2,6 +2,7 @@
 
 import { createAppKit } from "@reown/appkit/react";
 import {
+  mainnet,
   solana,
   solanaTestnet,
   solanaDevnet,
@@ -14,7 +15,6 @@ import {
   SolflareWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { ReactNode, useEffect, useState } from "react";
-import { monadTestnet } from "@/lib/chains";
 
 // Project ID from Reown Cloud
 // Get one at: https://cloud.reown.com
@@ -30,7 +30,7 @@ const solanaWeb3JsAdapter = new SolanaAdapter({
 
 // Networks supported by the app
 const networks: [AppKitNetwork, ...AppKitNetwork[]] = [
-  monadTestnet,
+  mainnet,
   solana,
   solanaTestnet,
   solanaDevnet,

@@ -8,8 +8,9 @@ declare global {
   }
 }
 
-// Get the base path for the current deployment
-function getBasePath(): string {
+// Get the base path for the current deployment.
+// Returns "" on a local root deploy, or an origin plus repo prefix on GitHub Pages.
+export function getPublicBasePath(): string {
   // For GitHub Pages with subdirectory (e.g., /rektsafe/)
   // Check if we're on a subpath by looking at the script src
   const scripts = document.getElementsByTagName("script");
@@ -29,7 +30,7 @@ export function initHasherWasm() {
   if (typeof window === "undefined") return;
   if (window.__HASHER_WASM_INIT__) return;
 
-  const basePath = getBasePath();
+  const basePath = getPublicBasePath();
   console.log("[Hasher WASM] Base path:", basePath);
 
   try {

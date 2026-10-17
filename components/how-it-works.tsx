@@ -95,7 +95,7 @@ const zkSendSteps: Step[] = [
     number: "01",
     title: "Connect Wallet",
     description:
-      "Connect your Solana wallet. Your private key never leaves your device - only a signature is used to derive the encryption key.",
+      "Connect a Solana wallet, or an Ethereum wallet on mainnet. Your private key never leaves your device. A signature derives the encryption key.",
     code: `> connect_wallet()
 > sign_message("Welcome to RektSafe. For Cypherpunks, By Cypherpunks")
 ✓ Encryption key derived`,
@@ -105,7 +105,7 @@ const zkSendSteps: Step[] = [
     number: "02",
     title: "Shield Assets",
     description:
-      "Deposit SOL, USDC, USDT, or other supported tokens into the Privacy Cash pool. Your assets become anonymous.",
+      "Deposit SOL, USDC, or USDT on Solana, or ETH and USDT on Ethereum, into the Privacy Cash pool. Your assets become anonymous.",
     code: `> deposit(1.5 SOL)
 > generate_proof()
 > submit_to_pool()
@@ -126,7 +126,7 @@ const zkSendSteps: Step[] = [
     number: "04",
     title: "Send Privately",
     description:
-      "Transfer assets to any Solana address privately. The recipient receives clean funds from the privacy pool.",
+      "Transfer to a Solana address, or to an Ethereum address when your wallet is on Ethereum. The recipient receives funds from the privacy pool.",
     code: `> private_send(0.5 SOL, recipient)
 > generate_transfer_proof()
 ✓ Private transfer complete`,
@@ -136,7 +136,7 @@ const zkSendSteps: Step[] = [
     number: "05",
     title: "Unshield Anytime",
     description:
-      "Withdraw your assets back to your public wallet whenever you want. The connection to your deposits is broken.",
+      "Withdraw back to a public Solana or Ethereum address whenever you want. The connection to your deposits is broken.",
     code: `> withdraw(1.0 SOL, my_wallet)
 > generate_withdraw_proof()
 ✓ Assets unshielded`,

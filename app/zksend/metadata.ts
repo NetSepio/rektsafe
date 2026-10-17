@@ -1,5 +1,5 @@
 export const metadata = {
   title: "zkSend | Private Transfers - rektSafe",
   description:
-    "Shield, send, and unshield your Solana assets privately. Zero-knowledge privacy for your crypto transactions.",
+    "Shield, send, and unshield privately. Solana supports SOL, USDC, and USDT. Ethereum mainnet supports ETH and USDT.",
 };

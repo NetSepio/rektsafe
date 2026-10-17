@@ -15,7 +15,6 @@ import {
   Home,
   KeyRound,
   Zap,
-  Gift,
   Cpu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -46,7 +45,7 @@ const solanaNavLinks: NavLink[] = [
 
 const evmNavLinks: NavLink[] = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/promises/", label: "Promises", icon: Gift },
+  { href: "/zksend/", label: "zkSend", icon: Zap },
   hardwareLink,
 ];
 

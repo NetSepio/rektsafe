@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Shield, Lock, Zap, Terminal, Gift, Cpu } from "lucide-react";
+import { ArrowRight, Shield, Lock, Zap, Terminal, Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAppKitAccount } from "@reown/appkit/react";
@@ -216,7 +216,7 @@ export function Hero() {
           className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-4 font-mono"
         >
           <TypeWriter
-            text="// Split keys. Encrypt files. Lock Promises. Send privately. No servers."
+            text="// Split keys. Encrypt files. Send privately. No servers."
             delay={40}
           />
         </motion.p>
@@ -227,9 +227,9 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.5 }}
           className="text-sm text-muted-foreground/60 max-w-xl mx-auto mb-10"
         >
-          Threshold signatures with zkSig. Private transfers with zkSend.
-          Time-locked Promises on Monad Testnet. All client-side. Your keys,
-          your data, your control.
+          Threshold signatures with zkSig. Private transfers with zkSend on
+          Solana and Ethereum. All client-side. Your keys, your data, your
+          control.
         </motion.p>
 
         <motion.div
@@ -248,13 +248,13 @@ export function Hero() {
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </ConnectWalletButton>
           ) : (
-            <Link href={walletType === "evm" ? "/promises/" : "/zksig/"}>
+            <Link href={walletType === "evm" ? "/zksend/" : "/zksig/"}>
               <Button
                 size="lg"
                 className="group bg-primary text-primary-foreground hover:bg-primary/90 glow-primary px-8 py-6 text-lg font-mono"
               >
                 <Terminal className="w-5 h-5 mr-2" />
-                {walletType === "evm" ? "Open Promises" : "Open zkSig"}
+                {walletType === "evm" ? "Open zkSend" : "Open zkSig"}
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
@@ -290,12 +290,11 @@ export function Hero() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
-          className="mt-20 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8 max-w-4xl mx-auto"
+          className="mt-20 grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-8 max-w-3xl mx-auto"
         >
           {[
             { icon: Shield, label: "Military-Grade", value: "AES-256" },
             { icon: Lock, label: "Threshold", value: "TSS Scheme" },
-            { icon: Gift, label: "Time-Locked", value: "Promises" },
             { icon: Zap, label: "Fully", value: "Decentralized" },
           ].map((stat, index) => (
             <motion.div

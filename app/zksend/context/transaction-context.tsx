@@ -7,6 +7,7 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
+import type { TransferChain } from "../lib/explorer";
 
 export type TransactionType = "shield" | "send" | "unshield";
 export type TransactionStatus = "pending" | "confirmed" | "failed";
@@ -21,11 +22,12 @@ export interface Transaction {
   timestamp: number;
   txSignature?: string;
   error?: string;
+  chain?: TransferChain;
 }
 
 interface TransactionContextType {
   transactions: Transaction[];
-  addTransaction: (tx: Omit<Transaction, "id" | "timestamp">) => void;
+  addTransaction: (tx: Omit<Transaction, "id" | "timestamp">) => string;
   updateTransaction: (id: string, updates: Partial<Transaction>) => void;
   clearHistory: () => void;
 }
@@ -62,9 +64,10 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
   const addTransaction = useCallback(
     (tx: Omit<Transaction, "id" | "timestamp">) => {
+      const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const newTransaction: Transaction = {
         ...tx,
-        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id,
         timestamp: Date.now(),
       };
       setTransactions((prev) => {
@@ -72,6 +75,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         saveTransactionsToStorage(updated);
         return updated;
       });
+      return id;
     },
     [],
   );

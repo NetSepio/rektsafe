@@ -15,15 +15,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
+import type { Eip1193Provider } from "@/lib/eip1193";
 import { useTransactions } from "../context/transaction-context";
-import { useBalances } from "../hooks/use-balances";
+import { useBalances, type TokenSymbol } from "../hooks/use-balances";
 import { useWalletSession } from "@/components/wallet-session-provider";
-import { privacyCashSDK, type TokenSymbol } from "../lib/privacy-cash-sdk";
+import { privacyCashSDK } from "../lib/privacy-cash-sdk";
+import { depositEthereum, ETH_GAS_RESERVE } from "../lib/evm-privacy";
+import { txExplorerUrl } from "../lib/explorer";
 
 export function ShieldSection() {
+  const { address } = useAppKitAccount();
   const { addTransaction, updateTransaction } = useTransactions();
-  const { isInitialized: isSessionInitialized } = useWalletSession();
-  const { tokens, shieldableTokens, refresh, isSDKInitialized } = useBalances();
+  const { isInitialized: isSessionInitialized, evmSignature } =
+    useWalletSession();
+  const { walletProvider } = useAppKitProvider<Eip1193Provider>("eip155");
+  const { tokens, shieldableTokens, refresh, chain } = useBalances();
 
   const [selectedToken, setSelectedToken] = useState<TokenSymbol | null>(null);
   const [amount, setAmount] = useState("");
@@ -43,6 +50,10 @@ export function ShieldSection() {
   const publicBalance = currentToken?.publicBalance || 0;
 
   const handleMax = () => {
+    if (chain === "ethereum" && currentToken?.symbol === "ETH") {
+      setAmount(Math.max(0, publicBalance - ETH_GAS_RESERVE).toString());
+      return;
+    }
     setAmount(publicBalance.toString());
   };
 
@@ -62,7 +73,16 @@ export function ShieldSection() {
       return;
     }
 
-    if (!isSessionInitialized) {
+    if (chain === "ethereum") {
+      if (!evmSignature || !walletProvider) {
+        setStatus({
+          type: "error",
+          message:
+            "Wallet session not initialized. Please sign the message first.",
+        });
+        return;
+      }
+    } else if (!isSessionInitialized) {
       setStatus({
         type: "error",
         message:
@@ -74,34 +94,44 @@ export function ShieldSection() {
     setIsLoading(true);
     setStatus({ type: null, message: "" });
 
-    const txId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    addTransaction({
+    const txId = addTransaction({
       type: "shield",
       assetIn: selectedToken,
       amountIn: parseFloat(amount),
       status: "pending",
+      chain,
     });
 
     try {
-      let result;
+      let signature: string;
 
-      if (currentToken.isNative) {
-        // Deposit SOL using SDK
+      if (chain === "ethereum") {
+        if (!address) {
+          throw new Error("Wallet not connected");
+        }
+        signature = await depositEthereum({
+          amount: parseFloat(amount),
+          token: selectedToken === "USDT" ? "usdt" : "eth",
+          address,
+          signature: evmSignature!,
+          walletProvider: walletProvider!,
+        });
+      } else if (currentToken.isNative) {
         const lamports = Math.floor(parseFloat(amount) * 1e9);
-        result = await privacyCashSDK.deposit(lamports);
+        signature = (await privacyCashSDK.deposit(lamports)).signature;
       } else {
         throw new Error("SPL token deposits not yet implemented");
       }
 
       updateTransaction(txId, {
         status: "confirmed",
-        txSignature: result.signature,
+        txSignature: signature,
       });
 
       setStatus({
         type: "success",
         message: `Successfully shielded ${amount} ${selectedToken}`,
-        txSignature: result.signature,
+        txSignature: signature,
       });
 
       setAmount("");
@@ -298,18 +328,31 @@ export function ShieldSection() {
 
         {/* Fee Info */}
         <div className="p-4 rounded-xl bg-muted/30 space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground font-mono">
-              Privacy Pool Fee
-            </span>
-            <span className="text-foreground font-mono">~0.001 SOL</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground font-mono">
-              Relayer Cost
-            </span>
-            <span className="text-foreground font-mono">~0.0005 SOL</span>
-          </div>
+          {chain === "ethereum" ? (
+            <p className="text-sm text-muted-foreground font-mono">
+              The full amount is shielded. You pay Ethereum gas from your
+              public ETH balance
+              {selectedToken === "USDT"
+                ? ", and USDT asks for an approval before the shield transaction"
+                : ""}
+              . MAX on ETH leaves {ETH_GAS_RESERVE} ETH for gas.
+            </p>
+          ) : (
+            <>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground font-mono">
+                  Privacy Pool Fee
+                </span>
+                <span className="text-foreground font-mono">~0.001 SOL</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground font-mono">
+                  Relayer Cost
+                </span>
+                <span className="text-foreground font-mono">~0.0005 SOL</span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Shield Button */}
@@ -365,7 +408,7 @@ export function ShieldSection() {
               </p>
               {status.txSignature && (
                 <a
-                  href={`https://explorer.solana.com/tx/${status.txSignature}`}
+                  href={txExplorerUrl(chain, status.txSignature)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"

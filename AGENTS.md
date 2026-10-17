@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-**rektSafe** is a decentralized dead man's switch application for crypto and data inheritance. It uses threshold signature schemes (TSS) to securely pass digital assets to beneficiaries, and now includes private transfers via zkSend, time-locked Promises, and a coming-soon hardware wallet called RektSafe Vault.
+**rektSafe** is a decentralized dead man's switch application for crypto and data inheritance. It uses threshold signature schemes (TSS) to securely pass digital assets to beneficiaries, and now includes private transfers via zkSend and a coming-soon hardware wallet called RektSafe Vault.
 
 - **Stack**: Next.js 15 + React 19 + TypeScript + Tailwind CSS
 - **Crypto**: Web Crypto API (Ed25519, AES-256-GCM, SHA-256), Privacy Cash SDK
@@ -50,7 +50,6 @@ rektsafe/
 │   │   │   └── vault-context.tsx
 │   │   └── lib/           # Supabase client & utilities
 │   │       └── supabase.ts
-│   ├── promises/          # Time-locked token locks on Monad Testnet
 │   ├── wallet/            # RektSafe Vault launch page (route /wallet/, nav label Wallet)
 │   │   ├── page.tsx       # Coming-soon hardware wallet content
 │   │   └── layout.tsx     # Page metadata
@@ -205,9 +204,8 @@ const nextConfig = {
 |-------|-------------|
 | `/` | Landing page |
 | `/zksig/` | zkSig - Threshold signatures (TSS/DMS) |
-| `/zksend/` | Private transfers - zkSend app |
+| `/zksend/` | Private transfers. Solana: SOL, USDC, USDT. Ethereum mainnet: ETH and USDT. EVM nav includes zkSend. Other EVM networks are asked to switch to Ethereum. zkSig and zkVault stay Solana-only. |
 | `/zkvault/` | zkVault - NFT-based lending vault |
-| `/promises/` | Promises - time-locked token locks on Monad Testnet |
 | `/wallet/` | RektSafe Vault - coming-soon hardware wallet. Navbar label is **Wallet**. Do not add a footer link for it, and do not label any link just "Vault" (that collides with zkVault). |
 | `/privacy/` | Privacy policy |
 | `/terms/` | Terms of service |
@@ -239,12 +237,12 @@ Static files are generated in `/dist/`:
 - `zksig/index.html` - zkSig threshold signatures
 - `zksend/index.html` - Private transfers
 - `zkvault/index.html` - NFT lending vault
-- `promises/index.html` - Time-locked promises
 - `wallet/index.html` - RektSafe Vault launch page
 - `privacy/index.html` - Privacy page
 - `terms/index.html` - Terms page
 - `_next/` - JS/CSS assets
-- `wasm/` - WASM files for ZK proofs
+- `wasm/` - WASM files for Solana ZK proofs
+- `circuit2.wasm` and `circuit2.zkey` - Ethereum privacy circuit. The SDK loads them from `keyBasePath` `/circuit` plus the input count `2`.
 
 **Note**: `dist/` is excluded from git (see .gitignore)
 
@@ -425,12 +423,18 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
 ## Privacy Cash SDK Integration
 
 ### Overview
-The app integrates `privacycash` SDK for private transactions on Solana.
+The app integrates `privacycash` for Solana and `privacycash-evm` for Ethereum mainnet.
+
+Solana zkSend still signs `Welcome to RektSafe. For Cypherpunks, By Cypherpunks!` and keeps that signature in memory. Ethereum zkSend signs exactly `Privacy Money account sign in` and stores it in `localStorage` as `evm_sign_<address>`, which is what the EVM SDK uses to decrypt notes. A different message makes shielded funds undecryptable.
+
+Ethereum deposits and withdrawals use `ETH_NETWORK`. Supported pools are ETH and USDT (`0xdAC17F958D2ee523a2206206994597C13D831ec7`). Withdrawals are relayed. The amount entered is deducted from the private balance, and the network fee plus protocol fee come out of that amount. `WalletGuard` accepts an EVM wallet on `/zksend/` only when `allowEthereum` is set and the chain is Ethereum. Other EVM networks are asked to switch to Ethereum. AppKit lists Ethereum mainnet as the EVM network.
 
 ### Supported Tokens
 - **SOL** - Native Solana
-- **USDC** - `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`
-- **USDT** - `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB`
+- **USDC** - `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` (Solana)
+- **USDT** - `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB` (Solana)
+- **ETH** - Ethereum mainnet
+- **USDT** - `0xdAC17F958D2ee523a2206206994597C13D831ec7` (Ethereum)
 
 ### SDK Wrapper
 Located at `app/zksend/lib/privacy-cash-sdk.ts`:
@@ -452,6 +456,7 @@ await privacyCashSDK.getPrivateBalance();
 - `hasher_wasm_simd_bg.wasm` - Hasher for ZK proofs (SIMD)
 - `rektsafe.wasm` - Circuit for proof generation
 - `rektsafe.zkey` - Proving key
+- `public/circuit2.wasm` and `public/circuit2.zkey` - Ethereum proving artifacts copied from `privacycash-evm`
 
 ### Browser Polyfills
 

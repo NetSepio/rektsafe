@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   distDir: "dist",
   images: { unoptimized: true },
   trailingSlash: true,
+  transpilePackages: ["privacycash-evm"],
 
   webpack: (config, { isServer }) => {
     // Handle node: prefixed imports
