@@ -39,9 +39,9 @@ function WalletConnectScreen() {
             <span className="gradient-text">Wallet</span>
           </h1>
           <p className="text-muted-foreground font-mono text-sm max-w-lg mx-auto">
-            Access zkSig for threshold signatures, zkVault for lending, or
-            zkSend for private transfers on Solana and Ethereum. Connect a
-            Solana or EVM wallet to continue.
+            Access zkSig for threshold signatures or zkSend for private
+            transfers on Solana and Ethereum. Connect a Solana or EVM wallet
+            to continue.
           </p>
         </motion.div>
 

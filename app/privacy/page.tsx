@@ -7,27 +7,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const privacyPrinciples = [
   {
     icon: Lock,
-    title: "Zero Knowledge Architecture",
+    title: "Keys Stay With You",
     description:
-      "We cannot access your encrypted data. Ever. All encryption happens in your browser using keys that never leave your device.",
+      "rektSafe cannot read your files or key shares. zkSig encryption and signing run in your browser. We do not store those keys.",
   },
   {
     icon: Eye,
-    title: "No Data Collection",
+    title: "No Accounts",
     description:
-      "We don't collect personal information. No accounts, no emails, no tracking. Your privacy is the default.",
+      "No accounts, no emails, and no analytics. The site does not build a profile of you.",
   },
   {
     icon: Server,
-    title: "Client-Side Only",
+    title: "Client-Side Keys",
     description:
-      "This application runs entirely in your browser. No data is sent to any server. You can verify this by inspecting the network traffic.",
+      "zkSig runs in your browser. zkSend sends shielded transactions through your wallet, public RPC endpoints, and Privacy Cash. rektSafe does not operate those networks.",
   },
   {
     icon: Trash2,
-    title: "No Persistence",
+    title: "What Stays on This Device",
     description:
-      "We don't store your keys, files, or encrypted data. Once you close the tab, everything is gone from memory.",
+      "rektSafe does not store your keys or files. An Ethereum zkSend sign-in and this browser's transfer history can stay in localStorage so you can decrypt notes later.",
   },
   {
     icon: FileKey,
@@ -39,7 +39,7 @@ const privacyPrinciples = [
     icon: Shield,
     title: "Standard Cryptography",
     description:
-      "We use only standard, well-audited cryptographic primitives: Ed25519, AES-256-GCM, and SHA-256 via the Web Crypto API.",
+      "zkSig uses Ed25519, AES-256-GCM, and SHA-256 via the Web Crypto API. zkSend adds zero-knowledge proofs for private transfers.",
   },
 ];
 
@@ -75,7 +75,7 @@ export default function PrivacyPage() {
           className="text-center mb-12"
         >
           <span className="text-xs text-muted-foreground font-mono">
-            Last Updated: January 2026
+            Last Updated: October 2026
           </span>
         </motion.div>
 
@@ -124,13 +124,15 @@ export default function PrivacyPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm text-muted-foreground">
-              <p>rektSafe is designed to collect zero personal information:</p>
+              <p>rektSafe does not run accounts or analytics:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>No account registration required</li>
-                <li>No email addresses collected</li>
-                <li>No IP addresses logged</li>
-                <li>No analytics or tracking cookies</li>
-                <li>No device fingerprinting</li>
+                <li>No account registration</li>
+                <li>No email addresses collected by rektSafe</li>
+                <li>No analytics or advertising cookies</li>
+                <li>
+                  Wallet, RPC, and Privacy Cash requests are visible to those
+                  networks. rektSafe does not operate them.
+                </li>
               </ul>
             </CardContent>
           </Card>
@@ -143,19 +145,25 @@ export default function PrivacyPage() {
             </CardHeader>
             <CardContent className="space-y-4 text-sm text-muted-foreground">
               <p>
-                rektSafe operates entirely within your web browser using
-                JavaScript and the Web Crypto API:
+                zkSig uses the Web Crypto API in your browser. zkSend also
+                talks to public networks:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>
-                  All cryptographic operations (key generation, encryption,
-                  signing) happen locally
+                  Key splitting, file encryption, and message signing happen
+                  locally
                 </li>
-                <li>Your private keys never leave your device</li>
-                <li>Files are encrypted in-memory before any transmission</li>
                 <li>
-                  No data is sent to our servers (we don&apos;t have any servers for
-                  crypto operations)
+                  Wallet keys stay in your wallet. rektSafe does not receive
+                  them
+                </li>
+                <li>
+                  Encrypted files stay on your machine. The app does not upload
+                  them
+                </li>
+                <li>
+                  Shield, send, and unshield submit transactions through your
+                  wallet, a public RPC endpoint, and Privacy Cash
                 </li>
               </ul>
             </CardContent>
@@ -168,16 +176,21 @@ export default function PrivacyPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm text-muted-foreground">
-              <p>
-                By design, rektSafe does not store any of your data:
-              </p>
+              <p>rektSafe does not keep a copy of your keys or files:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>No encrypted files are stored on our servers</li>
-                <li>No key shares are persisted anywhere</li>
-                <li>No metadata about your usage is collected</li>
+                <li>No encrypted files or key shares are stored by rektSafe</li>
                 <li>
-                  All data exists only in your browser&apos;s memory and is lost when
-                  you close the tab
+                  The Solana zkSend session stays in memory and clears when you
+                  refresh
+                </li>
+                <li>
+                  Ethereum zkSend stores the sign-in signature in this
+                  browser&apos;s localStorage so the same key can decrypt shielded
+                  notes
+                </li>
+                <li>
+                  Transfer history and the cookie-notice choice can also stay
+                  in localStorage on this device
                 </li>
               </ul>
             </CardContent>
@@ -191,13 +204,13 @@ export default function PrivacyPage() {
             </CardHeader>
             <CardContent className="space-y-4 text-sm text-muted-foreground">
               <p>
-                We don&apos;t use any third-party services that could access your
-                data:
+                rektSafe does not run analytics or advertising. Connecting a
+                wallet or using zkSend does contact services we do not operate:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>No Google Analytics or similar tracking</li>
-                <li>No CDN-hosted JavaScript libraries</li>
-                <li>No external APIs that process your data</li>
+                <li>Your wallet, including WalletConnect through Reown</li>
+                <li>Solana and Ethereum RPC endpoints</li>
+                <li>Privacy Cash, for shielded transfers</li>
                 <li>No advertising or marketing pixels</li>
               </ul>
             </CardContent>

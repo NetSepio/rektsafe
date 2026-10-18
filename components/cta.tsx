@@ -49,9 +49,9 @@ export function CTA() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-muted-foreground max-w-xl mx-auto mb-8 font-mono"
           >
-            Don&apos;t leave your loved ones locked out. Set up your dead
-            man&apos;s switch today and ensure your digital assets are never
-            lost.
+            Split a key, encrypt the files you want passed on, and give the
+            shares to people you trust. There is no check-in timer and no
+            automatic unlock.
           </motion.p>
 
           <motion.div
@@ -81,9 +81,9 @@ export function CTA() {
             <p className="text-xs text-muted-foreground font-mono">
               <span className="text-primary">✓</span> Open Source{" "}
               <span className="mx-2">|</span>
-              <span className="text-primary">✓</span> Client-Side Only{" "}
+              <span className="text-primary">✓</span> Client-Side Keys{" "}
               <span className="mx-2">|</span>
-              <span className="text-primary">✓</span> Zero Knowledge
+              <span className="text-primary">✓</span> No Custody
             </p>
           </motion.div>
         </motion.div>

@@ -31,9 +31,9 @@ const features = [
   },
   {
     icon: Lock,
-    title: "Zero-Knowledge Architecture",
+    title: "Client-Side Keys",
     description:
-      "We never store your keys or data. Everything encrypted client-side. No servers, no tracking, no compromises.",
+      "Key splitting, encryption, and signing run in your browser. RektSafe does not store your keys or files.",
     color: "text-[#00d4ff]",
     bgColor: "bg-[#00d4ff]/10",
   },
@@ -41,7 +41,7 @@ const features = [
     icon: Users,
     title: "Multi-Party Trust",
     description:
-      "Distribute key shares to trusted guardians. Require M-of-N signatures for recovery. No single point of failure.",
+      "Give key shares to people you trust. Enough shares reconstruct the key. Fewer shares cannot open the file.",
     color: "text-[#ffaa00]",
     bgColor: "bg-[#ffaa00]/10",
   },
@@ -55,9 +55,9 @@ const features = [
   },
   {
     icon: Globe,
-    title: "Truly Decentralized",
+    title: "No Custody",
     description:
-      "No accounts, no servers, no custody. Runs entirely in your browser. For cypherpunks, by cypherpunks.",
+      "No accounts and no custody. You hold the shares, the files, and the wallet. For cypherpunks, by cypherpunks.",
     color: "text-[#ff3366]",
     bgColor: "bg-[#ff3366]/10",
   },

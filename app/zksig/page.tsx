@@ -143,7 +143,7 @@ function ZkSigContent() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
             <Terminal className="w-4 h-4 text-primary" />
             <span className="text-xs font-mono text-primary uppercase tracking-wider">
-              Zero Knowledge Signatures
+              zkSig
             </span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold mb-2">

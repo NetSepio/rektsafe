@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer";
 import { WalletProvider } from "@/components/wallet-provider";
 import { WalletSessionProvider } from "@/components/wallet-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
+import { ogImage, siteDescription } from "./metadata";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,24 +26,25 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Yield",
+    default: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Private Transfers",
     template: "%s | rektSafe",
   },
-  description:
-    "rektSafe: Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault). RektSafe Vault, a hardware wallet, is launching soon. For Cypherpunks, By Cypherpunks.",
+  description: `${siteDescription} For Cypherpunks, By Cypherpunks.`,
   keywords: [
     "crypto",
-    "dead man's switch",
     "inheritance",
     "blockchain",
     "encryption",
     "TSS",
     "threshold signatures",
     "Solana",
+    "Ethereum",
+    "zkSend",
+    "private transfers",
     "wallet",
     "digital legacy",
     "crypto inheritance",
-    "secure vault",
+    "self-custody",
     "hardware wallet",
   ],
   authors: [{ name: "rektSafe", url: "https://rektsafe.com" }],
@@ -54,29 +56,20 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Yield",
-    description:
-      "Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault). RektSafe Vault, a hardware wallet, is launching soon.",
+    title: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Private Transfers",
+    description: siteDescription,
     type: "website",
     url: "https://rektsafe.com",
     siteName: "rektSafe",
     locale: "en_US",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "rektSafe - Crypto Security Suite",
-      },
-    ],
+    images: [ogImage],
   },
   twitter: {
     card: "summary_large_image",
-    title: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Yield",
-    description:
-      "Secure your crypto with threshold signatures (zkSig), private transfers (zkSend), and NFT-based lending vaults (zkVault). RektSafe Vault is launching soon.",
-    creator: "@rektsafe",
-    images: ["/og-image.png"],
+    title: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Private Transfers",
+    description: siteDescription,
+    creator: "@NetSepio",
+    images: [ogImage.url],
   },
   icons: {
     icon: [

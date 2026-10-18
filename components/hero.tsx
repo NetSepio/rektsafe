@@ -216,7 +216,7 @@ export function Hero() {
           className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-4 font-mono"
         >
           <TypeWriter
-            text="// Split keys. Encrypt files. Send privately. No servers."
+            text="// Split keys. Encrypt files. Send privately. Your keys."
             delay={40}
           />
         </motion.p>
@@ -228,8 +228,7 @@ export function Hero() {
           className="text-sm text-muted-foreground/60 max-w-xl mx-auto mb-10"
         >
           Threshold signatures with zkSig. Private transfers with zkSend on
-          Solana and Ethereum. All client-side. Your keys, your data, your
-          control.
+          Solana and Ethereum. Your keys stay with you.
         </motion.p>
 
         <motion.div
@@ -293,7 +292,7 @@ export function Hero() {
           className="mt-20 grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-8 max-w-3xl mx-auto"
         >
           {[
-            { icon: Shield, label: "Military-Grade", value: "AES-256" },
+            { icon: Shield, label: "Encryption", value: "AES-256" },
             { icon: Lock, label: "Threshold", value: "TSS Scheme" },
             { icon: Zap, label: "Fully", value: "Decentralized" },
           ].map((stat, index) => (

@@ -36,7 +36,7 @@ export default function TermsPage() {
           className="text-center mb-12"
         >
           <span className="text-xs text-muted-foreground font-mono">
-            Last Updated: January 2026
+            Last Updated: October 2026
           </span>
         </motion.div>
 
@@ -102,18 +102,28 @@ export default function TermsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm text-muted-foreground">
-              <p>
-                rektSafe is a client-side cryptographic tool that enables:
-              </p>
+              <p>rektSafe is a client-side tool for:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>File encryption using AES-256-GCM</li>
                 <li>Digital signatures using Ed25519</li>
-                <li>Threshold signature scheme demonstrations</li>
-                <li>Key generation and management tools</li>
+                <li>
+                  Threshold key shares (n-of-k). You distribute the shares.
+                  There is no check-in timer and no automatic unlock
+                </li>
+                <li>
+                  Private transfers (zkSend) on Solana and Ethereum through
+                  Privacy Cash
+                </li>
+                <li>
+                  An informational page for RektSafe Vault, a hardware wallet
+                  that is not yet for sale
+                </li>
               </ul>
               <p>
-                The Service operates entirely within your web browser. No data
-                is transmitted to or stored on our servers.
+                Key splitting, encryption, and signing run in your browser.
+                rektSafe does not store your keys or files. zkSend sends
+                transactions to public network endpoints and Privacy Cash.
+                rektSafe does not operate those services.
               </p>
             </CardContent>
           </Card>

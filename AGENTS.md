@@ -4,9 +4,9 @@
 
 ## Project Overview
 
-**rektSafe** is a decentralized dead man's switch application for crypto and data inheritance. It uses threshold signature schemes (TSS) to securely pass digital assets to beneficiaries, and now includes private transfers via zkSend and a coming-soon hardware wallet called RektSafe Vault.
+**rektSafe** is a client-side app for crypto inheritance and private transfers. Threshold signatures (zkSig) split a key into shares you distribute yourself. There is no check-in timer and no automatic unlock. zkSend does private transfers. RektSafe Vault is a coming-soon hardware wallet. Do not add a lending, yield, or NFT-vault product. The old zkVault route was removed because it conflicted with that positioning and with the hardware product name.
 
-- **Stack**: Next.js 15 + React 19 + TypeScript + Tailwind CSS
+- **Stack**: Next.js 16 + React 19 + TypeScript + Tailwind CSS
 - **Crypto**: Web Crypto API (Ed25519, AES-256-GCM, SHA-256), Privacy Cash SDK
 - **Theme**: Dark cypherpunk with neon accents
 - **Architecture**: Client-side only, static export (no SSR)
@@ -16,7 +16,7 @@
 ```
 rektsafe/
 ├── app/                    # Next.js App Router
-│   ├── zksig/             # zkSig - Threshold signatures (TSS/DMS)
+│   ├── zksig/             # zkSig - Threshold signatures
 │   │   ├── page.tsx       # Main zkSig page with tabs
 │   │   ├── components/    # Tab section components
 │   │   │   ├── tab-navigation.tsx    # Tab switcher UI
@@ -34,22 +34,6 @@ rektsafe/
 │   │   ├── hooks/         # useBalances hook
 │   │   ├── lib/           # Privacy Cash SDK wrapper
 │   │   └── context/       # Transaction context
-│   ├── zkvault/           # NFT-based Lending Vault (zkVault)
-│   │   ├── page.tsx       # Main zkVault page
-│   │   ├── types/         # TypeScript type definitions
-│   │   │   └── index.ts   # Vault types (positions, requests, etc.)
-│   │   ├── components/    # Tab section components
-│   │   │   ├── tab-navigation.tsx     # Tab switcher UI
-│   │   │   ├── tvl-card.tsx           # TVL statistics display
-│   │   │   ├── deposit-section.tsx    # Deposit funds & mint NFT
-│   │   │   ├── status-section.tsx     # View positions & yield
-│   │   │   ├── withdraw-section.tsx   # Submit withdrawal requests
-│   │   │   ├── claim-section.tsx      # Claim yield separately
-│   │   │   └── admin-section.tsx      # Admin dashboard
-│   │   ├── context/       # Vault context for state management
-│   │   │   └── vault-context.tsx
-│   │   └── lib/           # Supabase client & utilities
-│   │       └── supabase.ts
 │   ├── wallet/            # RektSafe Vault launch page (route /wallet/, nav label Wallet)
 │   │   ├── page.tsx       # Coming-soon hardware wallet content
 │   │   └── layout.tsx     # Page metadata
@@ -97,7 +81,7 @@ rektsafe/
 
 | Category | Technology |
 |----------|------------|
-| Framework | Next.js 15 (App Router) |
+| Framework | Next.js 16 (App Router). `pnpm dev` and `pnpm build` pass `--webpack` so the privacy SDK polyfills in `next.config.ts` apply. Turbopack is the Next.js 16 default and does not read that webpack config. |
 | Language | TypeScript 5 |
 | Styling | Tailwind CSS 4 + shadcn/ui |
 | Animation | Framer Motion |
@@ -203,10 +187,9 @@ const nextConfig = {
 | Route | Description |
 |-------|-------------|
 | `/` | Landing page |
-| `/zksig/` | zkSig - Threshold signatures (TSS/DMS) |
-| `/zksend/` | Private transfers. Solana: SOL, USDC, USDT. Ethereum mainnet: ETH and USDT. EVM nav includes zkSend. Other EVM networks are asked to switch to Ethereum. zkSig and zkVault stay Solana-only. |
-| `/zkvault/` | zkVault - NFT-based lending vault |
-| `/wallet/` | RektSafe Vault - coming-soon hardware wallet. Navbar label is **Wallet**. Do not add a footer link for it, and do not label any link just "Vault" (that collides with zkVault). |
+| `/zksig/` | zkSig - Threshold signatures. Solana wallets only. |
+| `/zksend/` | Private transfers. Solana: SOL, USDC, USDT. Ethereum mainnet: ETH and USDT. EVM nav includes zkSend. Other EVM networks are asked to switch to Ethereum. |
+| `/wallet/` | RektSafe Vault - coming-soon hardware wallet. Navbar label is **Wallet**. Do not add a footer link. Do not label any link just "Vault". The product name is RektSafe Vault. |
 | `/privacy/` | Privacy policy |
 | `/terms/` | Terms of service |
 
@@ -236,7 +219,6 @@ Static files are generated in `/dist/`:
 - `index.html` - Home page
 - `zksig/index.html` - zkSig threshold signatures
 - `zksend/index.html` - Private transfers
-- `zkvault/index.html` - NFT lending vault
 - `wallet/index.html` - RektSafe Vault launch page
 - `privacy/index.html` - Privacy page
 - `terms/index.html` - Terms page
@@ -275,11 +257,11 @@ Static files are generated in `/dist/`:
 
 ## Security Considerations
 
-- All crypto happens client-side via Web Crypto API
-- No keys or data sent to servers
-- Users responsible for key management
-- Uses standard, audited algorithms only
-- Privacy Cash SDK for ZK-based privacy
+- zkSig key splitting, encryption, and signing run in the browser via the Web Crypto API
+- RektSafe does not store keys, shares, or files
+- zkSend sends transactions to public RPC endpoints and Privacy Cash relayers. RektSafe does not operate those services
+- Users are responsible for key management
+- zkSig uses Ed25519, AES-256-GCM, and SHA-256. zkSend adds zero-knowledge proofs for private transfers
 
 ## Wallet Integration
 
@@ -299,9 +281,11 @@ The app uses a wallet session system for zkSend:
 3. Session persists across navigation (in-memory)
 4. No need to sign again for shield/send/unshield operations
 
-**Signing Message:**
+**Solana signing message** (do not reuse this for Ethereum):
 ```
-Welcome to RektSafe. For Cypherpunks, By Cypherpunks
+Welcome to RektSafe. For Cypherpunks, By Cypherpunks! 
+
+Powered by NetSepio
 ```
 
 ### Components
@@ -339,7 +323,7 @@ function MyComponent() {
 
 ## RektSafe Vault - Hardware Wallet
 
-Launch page at `app/wallet/`. Public route is `/wallet/`. The navbar calls the link **Wallet** and shows a Soon badge. It is a separate product from zkVault.
+Launch page at `app/wallet/`. Public route is `/wallet/`. The navbar calls the link **Wallet** and shows a Soon badge. The navbar label is Wallet, not Vault.
 
 The page is informational. There is no checkout, price, or ship date. Keep these claims exact:
 
@@ -351,74 +335,6 @@ The page is informational. There is no checkout, price, or ship date. Keep these
 - EAL5+/EAL6+ is an evaluation pathway. Certification is a development objective, not an existing certification.
 
 Home discovery lives in `components/hardware-teaser.tsx` and a hero link. Do not add a footer link for this page.
-
-## zkVault - NFT-Based Lending Vault
-
-### Overview
-zkVault is a lending pool where users deposit USDC/USDT and receive NFTs representing their positions. Yield accrues over time based on pool performance.
-
-### Supported Tokens
-- **USDC** - `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`
-- **USDT** - `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB`
-
-### Vault Configuration
-Located at `app/zkvault/context/vault-context.tsx`:
-
-```typescript
-const VAULT_CONFIG = {
-  vaultAddress: process.env.NEXT_PUBLIC_VAULT_ADDRESS,
-  minDeposit: 100,        // $100 minimum
-  maxDeposit: 100000,     // $100k maximum
-  coolingOffPeriod: 48,   // 48 hours
-  supportedTokens: ["USDC", "USDT"],
-  isPaused: false,
-};
-```
-
-### Database Integration
-Uses Supabase for off-chain tracking (optional - mock storage for demo):
-
-| Table | Purpose |
-|-------|---------|
-| `vault_positions` | NFT positions with metadata |
-| `withdrawal_requests` | User withdrawal submissions |
-| `yield_claims` | Yield claim requests |
-| `pool_stats` | TVL, APR, yield index |
-
-### zkVault Tabs
-
-| Tab | Component | Description |
-|-----|-----------|-------------|
-| `deposit` | `deposit-section.tsx` | Deposit funds, receive NFT |
-| `status` | `status-section.tsx` | View positions & accrued yield |
-| `withdraw` | `withdraw-section.tsx` | Submit withdrawal requests |
-| `claim` | `claim-section.tsx` | Claim yield separately |
-| `admin` | `admin-section.tsx` | Admin dashboard (multisig) |
-
-### Yield Calculation
-```typescript
-accruedYield = Principal × (CurrentYieldIndex - DepositIndex)
-totalValue = Principal + accruedYield
-```
-
-### Withdrawal Flow
-1. User submits withdrawal request
-2. 48-hour cooling-off period starts
-3. Admins review after cooling-off
-4. Multisig executes disbursement
-5. NFT transferred to escrow/burned
-
-### Environment Variables
-```bash
-# Vault Configuration
-NEXT_PUBLIC_VAULT_ADDRESS=your_multisig_vault_address
-
-# Supabase (optional - uses mock storage if not set)
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
-```
-
----
 
 ## Privacy Cash SDK Integration
 
@@ -466,6 +382,8 @@ The SDK requires Node.js modules that need polyfills:
 |--------|-------------------|
 | `path` | `lib/browser-polyfills/path.ts` |
 | `node-localstorage` | `lib/browser-polyfills/node-localstorage.ts` |
+| `web-worker` | `lib/browser-polyfills/web-worker.js` (browser `Worker`; avoids the Node dynamic `require`) |
+| `bigint-buffer` | `lib/browser-polyfills/bigint-buffer.js` (pure JS, no native addon) |
 | `fs`, `os`, etc. | `fallback: false` in webpack config |
 
 ### Key Components

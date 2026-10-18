@@ -39,7 +39,8 @@ const networks: [AppKitNetwork, ...AppKitNetwork[]] = [
 // Metadata for the app
 const metadata = {
   name: "rektSafe",
-  description: "Dead Man's Switch for Crypto & Data",
+  description:
+    "Inheritance, private transfers, and hardware security on Solana and Ethereum.",
   url: "https://rektsafe.com",
   icons: ["https://rektsafe.com/icon.png"],
 };

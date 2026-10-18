@@ -1,12 +1,12 @@
 # rektSafe
 
-**Zero-Knowledge Crypto Inheritance & Private Transfers**
+**Crypto Inheritance & Private Transfers**
 
 > *For Cypherpunks, By Cypherpunks*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A decentralized, zero-knowledge platform for crypto inheritance and private transfers. Split your keys with threshold signatures, encrypt sensitive data, and transfer assets privately on Solana or Ethereum — all client-side, no servers, no tracking.
+A client-side platform for crypto inheritance and private transfers. Split keys with threshold signatures, encrypt sensitive data, and transfer assets privately on Solana or Ethereum. RektSafe does not hold your keys or files.
 
 ![Cypherpunk Theme](https://img.shields.io/badge/Theme-Cypherpunk-00ff88)
 ![Crypto](https://img.shields.io/badge/Crypto-AES--256%2FEd25519-00d4ff)
@@ -18,14 +18,12 @@ A decentralized, zero-knowledge platform for crypto inheritance and private tran
 |---------|-------------|
 | **🔐 zkSig** | Threshold signatures—split keys, encrypt files, sign & verify messages |
 | **🕵️ zkSend** | Private transfers—shield, send, and unshield on Solana (SOL, USDC, USDT) or Ethereum (ETH, USDT) |
-| **🔒 zkVault** | NFT-based lending vault for yield and borrowing |
 | **👛 RektSafe Vault** | Coming-soon hardware wallet at `/wallet/` — self-custody, passkeys, and transaction warnings |
 | **⛓️ Multi-Chain** | Solana + EVM wallet support via Reown AppKit |
-| **🛡️ Zero-Knowledge** | AES-256-GCM + Ed25519, everything client-side |
-| **⏰ Dead Man's Switch** | Automated inactivity triggers for inheritance |
-| **👥 Multi-Party** | n-of-k threshold scheme for distributed trust |
+| **🛡️ Browser Crypto** | AES-256-GCM and Ed25519 in the browser. zkSend adds zero-knowledge proofs |
+| **👥 Threshold Recovery** | n-of-k shares. You distribute them. There is no check-in timer and no automatic unlock |
 | **📁 File Encryption** | Secure any file type with threshold decryption |
-| **🌐 Fully Decentralized** | No servers, no accounts, no tracking |
+| **🌐 No Custody** | No accounts. RektSafe does not hold keys, shares, or files |
 | **👛 Wallet Native** | Connect your Solana or EVM wallet, no new keys needed |
 
 ## 🎨 Design
@@ -39,7 +37,7 @@ A decentralized, zero-knowledge platform for crypto inheritance and private tran
 
 | Technology | Purpose |
 |------------|---------|
-| **Next.js 15** | React framework |
+| **Next.js 16** | React framework. Dev and production builds use Webpack (`--webpack`) because the privacy SDK needs the polyfills in `next.config.ts`. |
 | **React 19** | UI library |
 | **TypeScript** | Type safety |
 | **Tailwind CSS** | Styling |
@@ -58,9 +56,8 @@ A decentralized, zero-knowledge platform for crypto inheritance and private tran
 ```
 rektsafe/
 ├── app/                  # Next.js app directory
-│   ├── zksig/           # zkSig - Threshold signatures (TSS/DMS)
+│   ├── zksig/           # zkSig - Threshold signatures
 │   ├── zksend/          # zkSend - Private transfers on Solana and Ethereum
-│   ├── zkvault/         # zkVault - NFT-based lending vault
 │   ├── wallet/          # RektSafe Vault - coming-soon hardware wallet (nav label: Wallet)
 │   ├── privacy/         # Privacy policy page
 │   ├── terms/           # Terms of service page
@@ -81,9 +78,15 @@ rektsafe/
 ├── lib/                 # Utilities and polyfills
 │   ├── browser-polyfills/ # Node.js polyfills for browser
 │   └── utils.ts         # Utility functions
-├── public/wasm/         # WASM files for ZK proofs
+├── public/
+│   ├── og-image.png     # Open Graph and Twitter card, 1200×630
+│   ├── og-image.svg     # Source for the card image
+│   ├── icon.png         # Wallet connection icon
+│   ├── circuit2.wasm    # Ethereum zkSend proving circuit
+│   ├── circuit2.zkey
+│   └── wasm/            # Solana ZK proof files
 ├── .github/workflows/   # GitHub Actions
-│   └── deploy.yml       # Deploy to GitHub Pages
+│   └── deploy.yml       # Deploy to GitHub Pages (Node 20, pnpm 10.28.2)
 └── package.json
 ```
 
@@ -91,8 +94,8 @@ rektsafe/
 
 ### Prerequisites
 
-- Node.js 18+
-- pnpm (install via `npm install -g pnpm`)
+- Node.js 20+
+- pnpm 10 (install via `corepack enable` and `corepack prepare pnpm@10.28.2 --activate`). The lockfile is version 9, so pnpm 8 cannot install it.
 
 ### Environment Variables
 
@@ -109,12 +112,6 @@ NEXT_PUBLIC_HELIUS_RPC=https://mainnet.helius-rpc.com/?api-key=your_key
 # Optional: Custom Solana RPC fallback
 NEXT_PUBLIC_SOLANA_RPC=https://api.mainnet-beta.solana.com
 
-# Optional: zkVault multisig deposit address
-NEXT_PUBLIC_VAULT_ADDRESS=your_multisig_vault_address
-
-# Optional: Supabase for zkVault request storage (uses mock storage if not set)
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ### Installation
@@ -139,7 +136,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 
 ### GitHub Pages (Automated)
 
-Push to `main` branch triggers automatic deployment via GitHub Actions.
+Push to `main` triggers deployment via GitHub Actions. The workflow uses Node.js 20 and pnpm 10.28.2, then runs `pnpm build` and publishes the `dist/` static export.
 
 1. Go to **Settings → Pages**
 2. Set **Source** to "GitHub Actions"
@@ -147,8 +144,8 @@ Push to `main` branch triggers automatic deployment via GitHub Actions.
 
 ## 🔐 Security
 
-- **Client-Side Only**: All crypto operations happen in your browser
-- **Zero Knowledge**: We never see your keys or data
+- **Client-Side Keys**: Key splitting, encryption, and signing happen in your browser
+- **No Custody**: RektSafe does not hold your keys, shares, or files
 - **Standard Primitives**: Ed25519, AES-256-GCM, SHA-256 via Web Crypto API
 - **ZK Privacy**: Privacy Cash SDK for anonymous transactions
 - **Open Source**: Fully auditable code
@@ -160,8 +157,7 @@ Push to `main` branch triggers automatic deployment via GitHub Actions.
 - **Home** (`/`) - Landing page with features and how it works
 - **zkSig** (`/zksig/`) - Threshold signatures - split keys, encrypt, sign & verify
 - **zkSend** (`/zksend/`) - Private shielding and transfers. Solana: SOL, USDC, USDT. Ethereum mainnet: ETH, USDT.
-- **zkVault** (`/zkvault/`) - NFT-based lending vault positions and yield
-- **Wallet** (`/wallet/`) - RektSafe Vault, a coming-soon hardware security device. The navbar label is Wallet. This is not zkVault.
+- **Wallet** (`/wallet/`) - RektSafe Vault, a coming-soon hardware security device. The navbar label is Wallet.
 - **Privacy** (`/privacy/`) - Privacy policy
 - **Terms** (`/terms/`) - Terms of service
 
@@ -175,11 +171,15 @@ Push to `main` branch triggers automatic deployment via GitHub Actions.
 
 The page also outlines two stages. V1 uses cloud-assisted analysis through a connected phone or laptop, with signing still on the device. V2 is compact on-device AI for offline explanations. Both versions share the proposed ESP32-S3 + NXP SE050E2 foundation, with a screen, physical approval buttons, and USB-C.
 
-The EAL5+/EAL6+ line on the page is an evaluation pathway. The device is not certified yet. There is no price or ship date on the site. Launch news goes out on [X](https://x.com/netsepio) and [Telegram](https://t.me/RektSafeOfficial).
+The EAL5+/EAL6+ line on the page is an evaluation pathway. The device is not certified yet. There is no price or ship date on the site. Launch news goes out on [X](https://x.com/netsepio) (@NetSepio) and [Telegram](https://t.me/RektSafeOfficial).
+
+## 🔖 Metadata
+
+Each public route has a title, description, canonical URL, and Open Graph / Twitter card. The shared card image is `public/og-image.png` at 1200×630. Client pages keep their copy in a route `layout.tsx`, because a `"use client"` page cannot export metadata. The project account on the cards is [@NetSepio](https://x.com/netsepio).
 
 ## ⛓️ Wallet & Networks
 
-- Connect a **Solana** wallet (Phantom, Solflare, etc.) to use `zkSig`, `zkSend`, and `zkVault`.
+- Connect a **Solana** wallet (Phantom, Solflare, etc.) to use `zkSig` and `zkSend`.
 - Connect an **EVM** wallet (MetaMask, WalletConnect, etc.) on **Ethereum mainnet** to shield and send ETH or USDT in `zkSend`. Other EVM networks are asked to switch to Ethereum.
 - The navbar shows the connected address and current native balance for the selected network.
 
