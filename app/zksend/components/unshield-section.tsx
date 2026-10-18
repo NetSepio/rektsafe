@@ -17,11 +17,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppKitAccount } from "@reown/appkit/react";
+import { joinTokens } from "@/lib/chains";
 import { useTransactions } from "../context/transaction-context";
 import { useBalances, type TokenSymbol } from "../hooks/use-balances";
 import { useWalletSession } from "@/components/wallet-session-provider";
 import { privacyCashSDK } from "../lib/privacy-cash-sdk";
-import { isEthAddress, withdrawEthereum } from "../lib/evm-privacy";
+import { isEthAddress, withdrawEvm } from "../lib/evm-privacy";
 import { txExplorerUrl } from "../lib/explorer";
 
 const isValidSolanaAddress = (address: string): boolean => {
@@ -37,7 +38,8 @@ export function UnshieldSection() {
   const { addTransaction, updateTransaction } = useTransactions();
   const { isInitialized: isSessionInitialized, evmSignature } =
     useWalletSession();
-  const { tokens, privateTokens, refresh, chain } = useBalances();
+  const { tokens, privateTokens, refresh, chain, chainId, network } =
+    useBalances();
 
   const [selectedToken, setSelectedToken] = useState<TokenSymbol | null>(null);
   const [amount, setAmount] = useState("");
@@ -59,6 +61,11 @@ export function UnshieldSection() {
   const privateBalance = currentToken?.privateBalance || 0;
 
   useEffect(() => {
+    setSelectedToken(null);
+    setAmount("");
+  }, [chainId]);
+
+  useEffect(() => {
     if (address) {
       setRecipient(address);
     }
@@ -76,7 +83,7 @@ export function UnshieldSection() {
     if (value && !recipientIsValid(value)) {
       setRecipientError(
         chain === "ethereum"
-          ? "Invalid Ethereum address"
+          ? "Invalid address"
           : "Invalid Solana address",
       );
     } else {
@@ -145,6 +152,7 @@ export function UnshieldSection() {
       recipient: recipient,
       status: "pending",
       chain,
+      chainId,
     });
 
     try {
@@ -153,12 +161,16 @@ export function UnshieldSection() {
         if (!address || !evmSignature) {
           throw new Error("Wallet session not initialized.");
         }
-        signature = await withdrawEthereum({
+        if (chainId === undefined || !currentToken.privacyToken) {
+          throw new Error("Select a supported network and token.");
+        }
+        signature = await withdrawEvm({
           amount: parseFloat(amount),
-          token: selectedToken === "USDT" ? "usdt" : "eth",
+          token: currentToken.privacyToken,
           recipient,
           address,
           signature: evmSignature,
+          chainId,
         });
       } else {
         const lamports = Math.floor(parseFloat(amount) * 1e9);
@@ -345,7 +357,7 @@ export function UnshieldSection() {
             onChange={(e) => handleRecipientChange(e.target.value)}
             placeholder={
               chain === "ethereum"
-                ? "Enter an Ethereum address (0x...)"
+                ? "Enter an address (0x...)"
                 : "Enter Solana address..."
             }
             className="h-14 font-mono text-sm"
@@ -396,7 +408,7 @@ export function UnshieldSection() {
               <p className="text-sm text-foreground font-medium">Unshielding</p>
               <p className="text-xs text-muted-foreground mt-1">
                 {chain === "ethereum"
-                  ? "Withdraw ETH or USDT from the Ethereum privacy pool. A network fee plus a 0.35% protocol fee come out of the amount, and the recipient receives the rest."
+                  ? `Withdraw ${network ? joinTokens(network.tokens) : "assets"} from the ${network?.name ?? "privacy"} pool. A network fee plus a 0.35% protocol fee come out of the amount, and the recipient receives the rest.`
                   : "Withdraw your assets from the privacy pool back to a regular Solana address. The recipient will receive clean, unlinked funds."}
               </p>
             </div>
@@ -458,7 +470,7 @@ export function UnshieldSection() {
               </p>
               {status.txSignature && (
                 <a
-                  href={txExplorerUrl(chain, status.txSignature)}
+                  href={txExplorerUrl(chain, status.txSignature, chainId)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"

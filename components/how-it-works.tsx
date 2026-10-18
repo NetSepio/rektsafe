@@ -91,7 +91,7 @@ const zkSendSteps: Step[] = [
     number: "01",
     title: "Connect Wallet",
     description:
-      "Connect a Solana wallet, or an Ethereum wallet on mainnet. Your private key stays in the wallet. Solana signs the RektSafe welcome message. Ethereum must sign the Privacy Cash sign-in string, or shielded funds cannot be decrypted.",
+      "Connect a Solana wallet, or an EVM wallet on a Privacy Cash mainnet: Ethereum, Base, BNB Smart Chain, or Robinhood Chain. Your private key stays in the wallet. Solana signs the RektSafe welcome message. An EVM wallet must sign the Privacy Cash sign-in string, or shielded funds cannot be decrypted.",
     code: `> connect_wallet()
 > sign(solana_welcome | ethereum_sign_in)
 ✓ Viewing key derived`,
@@ -101,7 +101,7 @@ const zkSendSteps: Step[] = [
     number: "02",
     title: "Shield Assets",
     description:
-      "Deposit SOL, USDC, or USDT on Solana, or ETH and USDT on Ethereum, into the Privacy Cash pool. Your assets become anonymous.",
+      "Deposit SOL, USDC, or USDT on Solana. On an EVM wallet the pool follows the selected mainnet: ETH and USDT on Ethereum, ETH and USDC on Base, BNB and USDT on BNB Smart Chain, and ETH and USDG on Robinhood Chain.",
     code: `> deposit(1.5 SOL)
 > generate_proof()
 > submit_to_pool()
@@ -122,7 +122,7 @@ const zkSendSteps: Step[] = [
     number: "04",
     title: "Send Privately",
     description:
-      "Transfer to a Solana address, or to an Ethereum address when your wallet is on Ethereum. The recipient receives funds from the privacy pool.",
+      "Transfer to a Solana address, or to an address on the same EVM mainnet your wallet is using. The recipient receives funds from the privacy pool.",
     code: `> private_send(0.5 SOL, recipient)
 > generate_transfer_proof()
 ✓ Private transfer complete`,
@@ -132,7 +132,7 @@ const zkSendSteps: Step[] = [
     number: "05",
     title: "Unshield Anytime",
     description:
-      "Withdraw back to a public Solana or Ethereum address whenever you want. The connection to your deposits is broken.",
+      "Withdraw back to a public Solana address, or to an address on the same EVM mainnet, whenever you want. The connection to your deposits is broken.",
     code: `> withdraw(1.0 SOL, my_wallet)
 > generate_withdraw_proof()
 ✓ Assets unshielded`,

@@ -27,7 +27,7 @@ const privacyPrinciples = [
     icon: Trash2,
     title: "What Stays on This Device",
     description:
-      "rektSafe does not store your keys or files. An Ethereum zkSend sign-in and this browser's transfer history can stay in localStorage so you can decrypt notes later.",
+      "rektSafe does not store your keys or files. An EVM zkSend sign-in and this browser's transfer history can stay in localStorage so you can decrypt notes later.",
   },
   {
     icon: FileKey,
@@ -184,7 +184,7 @@ export default function PrivacyPage() {
                   refresh
                 </li>
                 <li>
-                  Ethereum zkSend stores the sign-in signature in this
+                  EVM zkSend stores the sign-in signature in this
                   browser&apos;s localStorage so the same key can decrypt shielded
                   notes
                 </li>
@@ -209,7 +209,7 @@ export default function PrivacyPage() {
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>Your wallet, including WalletConnect through Reown</li>
-                <li>Solana and Ethereum RPC endpoints</li>
+                <li>Solana and EVM RPC endpoints</li>
                 <li>Privacy Cash, for shielded transfers</li>
                 <li>No advertising or marketing pixels</li>
               </ul>

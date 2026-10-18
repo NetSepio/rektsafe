@@ -5,6 +5,7 @@ import { Eye, EyeOff, RefreshCw, Wallet, Shield, Info } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { joinTokens } from "@/lib/chains";
 import { useBalances } from "../hooks/use-balances";
 import { useAppKitAccount } from "@reown/appkit/react";
 import {
@@ -16,7 +17,8 @@ import {
 
 export function BalanceCard() {
   const [showBalances, setShowBalances] = useState(true);
-  const { tokens, isLoading, refresh, isSDKInitialized, chain } = useBalances();
+  const { tokens, isLoading, refresh, isSDKInitialized, chain, network } =
+    useBalances();
   const { address } = useAppKitAccount();
 
   const formatBalance = (balance: number, decimals: number = 4) => {
@@ -35,6 +37,7 @@ export function BalanceCard() {
       SOL: 180,
       USDC: 1,
       USDT: 1,
+      USDG: 1,
       ZEC: 65,
       ORE: 2.5,
       stORE: 2.75,
@@ -64,6 +67,8 @@ export function BalanceCard() {
                 Wallet Balances
               </h2>
               <p className="text-xs text-muted-foreground font-mono">
+                {network?.name ?? (chain === "solana" ? "Solana" : "Network")}
+                {" · "}
                 {address?.slice(0, 6)}...{address?.slice(-4)}
               </p>
             </div>
@@ -79,8 +84,8 @@ export function BalanceCard() {
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
                   <p>
-                    {chain === "ethereum"
-                      ? "Private ETH and USDT balances are decrypted in your browser. Public balances are read from Ethereum."
+                    {network
+                      ? `Private ${joinTokens(network.tokens)} balances are decrypted in your browser. Public balances are read from ${network.name}.`
                       : "Private balances are encrypted and require Privacy Cash SDK access. Public balances are fetched from Helius RPC."}
                   </p>
                 </TooltipContent>
@@ -162,10 +167,14 @@ export function BalanceCard() {
             </div>
           </div>
         </div>
-        {chain === "ethereum" && (
+        {network && (
           <p className="text-xs text-muted-foreground font-mono mb-4">
-            The USD totals include USDT at $1. ETH is shown as a token
-            balance below and is not converted to dollars.
+            The USD totals include{" "}
+            {joinTokens(
+              network.tokens.filter((symbol) => symbol !== network.nativeSymbol),
+            )}{" "}
+            at $1. {network.nativeSymbol} is shown as a token balance below and
+            is not converted to dollars.
           </p>
         )}
 

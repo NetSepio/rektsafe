@@ -228,7 +228,7 @@ export function Hero() {
           className="text-sm text-muted-foreground/60 max-w-xl mx-auto mb-10"
         >
           Threshold signatures with zkSig. Private transfers with zkSend on
-          Solana and Ethereum. Your keys stay with you.
+          Solana and supported EVM mainnets. Your keys stay with you.
         </motion.p>
 
         <motion.div

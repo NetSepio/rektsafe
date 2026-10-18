@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Send,
@@ -21,7 +21,7 @@ import { useTransactions } from "../context/transaction-context";
 import { useBalances, type TokenSymbol } from "../hooks/use-balances";
 import { useWalletSession } from "@/components/wallet-session-provider";
 import { privacyCashSDK } from "../lib/privacy-cash-sdk";
-import { isEthAddress, withdrawEthereum } from "../lib/evm-privacy";
+import { isEthAddress, withdrawEvm } from "../lib/evm-privacy";
 import { txExplorerUrl } from "../lib/explorer";
 
 const isValidSolanaAddress = (address: string): boolean => {
@@ -37,7 +37,8 @@ export function SendSection() {
   const { addTransaction, updateTransaction } = useTransactions();
   const { isInitialized: isSessionInitialized, evmSignature } =
     useWalletSession();
-  const { tokens, privateTokens, refresh, chain } = useBalances();
+  const { tokens, privateTokens, refresh, chain, chainId, network } =
+    useBalances();
 
   const [selectedToken, setSelectedToken] = useState<TokenSymbol | null>(null);
   const [amount, setAmount] = useState("");
@@ -58,6 +59,11 @@ export function SendSection() {
 
   const privateBalance = currentToken?.privateBalance || 0;
 
+  useEffect(() => {
+    setSelectedToken(null);
+    setAmount("");
+  }, [chainId]);
+
   const handleMax = () => {
     setAmount(privateBalance.toString());
   };
@@ -70,7 +76,7 @@ export function SendSection() {
     if (value && !recipientIsValid(value)) {
       setRecipientError(
         chain === "ethereum"
-          ? "Invalid Ethereum address"
+          ? "Invalid address"
           : "Invalid Solana address",
       );
     } else {
@@ -132,6 +138,7 @@ export function SendSection() {
       recipient: recipient,
       status: "pending",
       chain,
+      chainId,
     });
 
     try {
@@ -140,12 +147,16 @@ export function SendSection() {
         if (!address || !evmSignature) {
           throw new Error("Wallet session not initialized.");
         }
-        signature = await withdrawEthereum({
+        if (chainId === undefined || !currentToken.privacyToken) {
+          throw new Error("Select a supported network and token.");
+        }
+        signature = await withdrawEvm({
           amount: parseFloat(amount),
-          token: selectedToken === "USDT" ? "usdt" : "eth",
+          token: currentToken.privacyToken,
           recipient,
           address,
           signature: evmSignature,
+          chainId,
         });
       } else {
         const lamports = Math.floor(parseFloat(amount) * 1e9);
@@ -324,7 +335,7 @@ export function SendSection() {
               onChange={(e) => handleRecipientChange(e.target.value)}
               placeholder={
                 chain === "ethereum"
-                  ? "Enter an Ethereum address (0x...)"
+                  ? "Enter an address (0x...)"
                   : "Enter Solana address..."
               }
               className="h-14 pr-12 font-mono text-sm"
@@ -379,7 +390,7 @@ export function SendSection() {
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 {chain === "ethereum"
-                  ? "The amount leaves your private balance. A network fee plus a 0.35% protocol fee are taken from it, and the recipient receives the rest from the Ethereum privacy pool."
+                  ? `The amount leaves your private balance. A network fee plus a 0.35% protocol fee are taken from it, and the recipient receives the rest from the ${network?.name ?? "privacy"} pool.`
                   : "The recipient will receive funds from the privacy pool. The connection to your wallet will be broken."}
               </p>
             </div>
@@ -441,7 +452,7 @@ export function SendSection() {
               </p>
               {status.txSignature && (
                 <a
-                  href={txExplorerUrl(chain, status.txSignature)}
+                  href={txExplorerUrl(chain, status.txSignature, chainId)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"

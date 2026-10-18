@@ -39,6 +39,8 @@ export const metadata: Metadata = {
     "threshold signatures",
     "Solana",
     "Ethereum",
+    "Base",
+    "BNB",
     "zkSend",
     "private transfers",
     "wallet",

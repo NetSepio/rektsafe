@@ -25,7 +25,7 @@ const features = [
     icon: Zap,
     title: "zkSend — Private Transfers",
     description:
-      "Shield, send, and unshield on Solana (SOL, USDC, USDT) or Ethereum (ETH, USDT). Zero-knowledge privacy for your transactions.",
+      "Shield, send, and unshield on Solana (SOL, USDC, USDT) or a Privacy Cash mainnet: Ethereum (ETH, USDT), Base (ETH, USDC), BNB Smart Chain (BNB, USDT), and Robinhood Chain (ETH, USDG).",
     color: "text-accent",
     bgColor: "bg-accent/10",
   },

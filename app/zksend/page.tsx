@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WalletGuard } from "@/components/wallet-guard";
-import { useIsEthereum } from "@/hooks/use-is-ethereum";
+import { usePrivacyNetwork } from "@/hooks/use-privacy-network";
+import { joinTokens } from "@/lib/chains";
 import { BalanceCard } from "./components/balance-card";
 import { ShieldSection } from "./components/shield-section";
 import { SendSection } from "./components/send-section";
@@ -16,7 +17,7 @@ export type Tab = "shield" | "send" | "unshield" | "history";
 
 export default function ZkSendPage() {
   const [activeTab, setActiveTab] = useState<Tab>("shield");
-  const isEthereum = useIsEthereum();
+  const { network } = usePrivacyNetwork();
 
   return (
     <WalletGuard allowEthereum>
@@ -38,9 +39,16 @@ export default function ZkSendPage() {
                 <span className="text-foreground">Private </span>
                 <span className="gradient-text">Transfers</span>
               </h1>
+              {network && (
+                <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 rounded-full border border-primary/30 bg-primary/10">
+                  <span className="text-xs font-mono text-primary uppercase tracking-wider">
+                    {network.name}
+                  </span>
+                </div>
+              )}
               <p className="text-muted-foreground font-mono text-sm max-w-xl mx-auto">
-                {isEthereum
-                  ? "Shield ETH and USDT on Ethereum, send them privately, and unshield when you want a public balance again."
+                {network
+                  ? `On ${network.name}. Shield ${joinTokens(network.tokens)}, send them privately, and unshield when you want a public balance again.`
                   : "Shield your assets, send privately, and unshield when needed. Your transactions, your privacy."}
               </p>
             </motion.div>

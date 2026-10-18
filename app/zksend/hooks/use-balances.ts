@@ -12,21 +12,22 @@ import {
 } from "ethers";
 import type { Eip1193Provider } from "@/lib/eip1193";
 import { useWalletType } from "@/hooks/use-wallet-type";
-import { useIsEthereum } from "@/hooks/use-is-ethereum";
+import { usePrivacyNetwork } from "@/hooks/use-privacy-network";
 import { useWalletSession } from "@/components/wallet-session-provider";
+import {
+  evmTokensFromPools,
+  type EvmPrivacyToken,
+  type EvmTokenSymbol,
+} from "@/lib/evm-tokens";
 import {
   privacyCashSDK,
   SUPPORTED_TOKENS,
   type TokenSymbol as SolanaTokenSymbol,
 } from "../lib/privacy-cash-sdk";
-import {
-  ETH_USDT_ADDRESS,
-  getEthereumPrivateBalance,
-  type EvmPrivacyToken,
-} from "../lib/evm-privacy";
+import { getEvmPrivateBalance } from "../lib/evm-privacy";
 import type { TransferChain } from "../lib/explorer";
 
-export type TokenSymbol = SolanaTokenSymbol | "ETH";
+export type TokenSymbol = SolanaTokenSymbol | EvmTokenSymbol;
 
 export interface TokenBalance {
   symbol: TokenSymbol;
@@ -37,40 +38,20 @@ export interface TokenBalance {
   color: string;
   isNative: boolean;
   mint: string | null;
+  privacyToken?: EvmPrivacyToken;
 }
 
 export interface Balances {
   [key: string]: TokenBalance;
 }
 
-const ETHEREUM_TOKENS: Record<
-  "ETH" | "USDT",
-  Omit<TokenBalance, "publicBalance" | "privateBalance">
-> = {
-  ETH: {
-    symbol: "ETH",
-    name: "Ether",
-    decimals: 18,
-    color: "#00d4ff",
-    isNative: true,
-    mint: null,
-  },
-  USDT: {
-    symbol: "USDT",
-    name: "Tether",
-    decimals: 6,
-    color: "#ff006e",
-    isNative: false,
-    mint: ETH_USDT_ADDRESS,
-  },
-};
-
 export function useBalances() {
   const { address, isConnected } = useAppKitAccount();
   const walletType = useWalletType();
-  const isEthereum = useIsEthereum();
+  const { network, isSupported } = usePrivacyNetwork();
   const chain: TransferChain =
-    walletType === "evm" && isEthereum ? "ethereum" : "solana";
+    walletType === "evm" && isSupported ? "ethereum" : "solana";
+  const chainId = network?.chainId;
   const { walletProvider } = useAppKitProvider<Provider>("solana");
   const { walletProvider: evmProvider } =
     useAppKitProvider<Eip1193Provider>("eip155");
@@ -86,13 +67,6 @@ export function useBalances() {
   const initializeBalances = useCallback((): Balances => {
     const initial: Balances = {};
     if (chain === "ethereum") {
-      Object.values(ETHEREUM_TOKENS).forEach((config) => {
-        initial[config.symbol] = {
-          ...config,
-          publicBalance: 0,
-          privateBalance: 0,
-        };
-      });
       return initial;
     }
 
@@ -140,41 +114,52 @@ export function useBalances() {
     }
   }, [address, isSessionInitialized, walletProvider]);
 
-  const fetchEthereumBalances = useCallback(async () => {
-    if (!address) return;
+  const fetchEvmBalances = useCallback(async () => {
+    if (!address || chainId === undefined) return;
 
-    const newBalances = initializeBalances();
-    let provider: BrowserProvider | JsonRpcProvider;
-
-    if (evmProvider) {
-      provider = new BrowserProvider(evmProvider);
-    } else {
-      const { ETH_NETWORK } = await import("privacycash-evm");
-      provider = new JsonRpcProvider(ETH_NETWORK.rpcUrl);
+    const { getNetworkConfig } = await import("privacycash-evm");
+    const config = getNetworkConfig(chainId);
+    const tokenList = evmTokensFromPools(config);
+    const newBalances: Balances = {};
+    for (const token of tokenList) {
+      newBalances[token.symbol] = {
+        ...token,
+        publicBalance: 0,
+        privateBalance: 0,
+      };
     }
 
-    const [ethBalance, usdtRaw] = await Promise.all([
-      provider.getBalance(address),
-      new Contract(
-        ETH_USDT_ADDRESS,
-        ["function balanceOf(address) view returns (uint256)"],
-        provider,
-      ).balanceOf(address) as Promise<bigint>,
-    ]);
+    const provider = evmProvider
+      ? new BrowserProvider(evmProvider)
+      : new JsonRpcProvider(config.rpcUrl);
 
-    newBalances.ETH.publicBalance = Number(formatEther(ethBalance));
-    newBalances.USDT.publicBalance = Number(formatUnits(usdtRaw, 6));
+    await Promise.all(
+      tokenList.map(async (token) => {
+        if (token.isNative) {
+          const raw = await provider.getBalance(address);
+          newBalances[token.symbol].publicBalance = Number(formatEther(raw));
+          return;
+        }
+        const raw = (await new Contract(
+          token.mint!,
+          ["function balanceOf(address) view returns (uint256)"],
+          provider,
+        ).balanceOf(address)) as bigint;
+        newBalances[token.symbol].publicBalance = Number(
+          formatUnits(raw, token.decimals),
+        );
+      }),
+    );
 
     if (evmSignature) {
-      const tokens: EvmPrivacyToken[] = ["eth", "usdt"];
       await Promise.all(
-        tokens.map(async (token) => {
-          const symbol = token === "eth" ? "ETH" : "USDT";
-          newBalances[symbol].privateBalance = await getEthereumPrivateBalance(
+        tokenList.map(async (token) => {
+          newBalances[token.symbol].privateBalance = await getEvmPrivateBalance(
             {
               address,
               signature: evmSignature,
-              token,
+              token: token.privacyToken,
+              chainId,
             },
           );
         }),
@@ -185,7 +170,7 @@ export function useBalances() {
     }
 
     setBalances(newBalances);
-  }, [address, evmProvider, evmSignature, initializeBalances]);
+  }, [address, chainId, evmProvider, evmSignature]);
 
   const fetchBalances = useCallback(async () => {
     if (!isConnected || !address) {
@@ -198,10 +183,11 @@ export function useBalances() {
     if (chain === "ethereum") {
       setIsLoading(true);
       setError(null);
+      setBalances({});
       try {
-        await fetchEthereumBalances();
+        await fetchEvmBalances();
       } catch (err) {
-        console.error("Error fetching Ethereum balances:", err);
+        console.error("Error fetching EVM balances:", err);
         setError(
           err instanceof Error ? err.message : "Failed to fetch balances",
         );
@@ -273,7 +259,7 @@ export function useBalances() {
     isConnected,
     initializeBalances,
     initializeSDK,
-    fetchEthereumBalances,
+    fetchEvmBalances,
   ]);
 
   useEffect(() => {
@@ -293,7 +279,7 @@ export function useBalances() {
   // Get array of all tokens for UI rendering
   const tokensArray = useCallback((): TokenBalance[] => {
     return Object.values(balances).sort((a, b) => {
-      const native = chain === "ethereum" ? "ETH" : "SOL";
+      const native = chain === "ethereum" ? network?.nativeSymbol ?? "ETH" : "SOL";
       if (a.symbol === native) return -1;
       if (b.symbol === native) return 1;
       const aTotal = a.publicBalance + a.privateBalance;
@@ -301,7 +287,7 @@ export function useBalances() {
       if (bTotal !== aTotal) return bTotal - aTotal;
       return a.symbol.localeCompare(b.symbol);
     });
-  }, [balances, chain]);
+  }, [balances, chain, network]);
 
   // Get tokens with public balance > 0 (for shielding)
   const getShieldableTokens = useCallback((): TokenBalance[] => {
@@ -316,6 +302,8 @@ export function useBalances() {
   return {
     balances,
     chain,
+    chainId,
+    network,
     tokens: tokensArray(),
     shieldableTokens: getShieldableTokens(),
     privateTokens: getPrivateTokens(),

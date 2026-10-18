@@ -2,12 +2,12 @@
 
 import { createAppKit } from "@reown/appkit/react";
 import {
-  mainnet,
   solana,
   solanaTestnet,
   solanaDevnet,
   type AppKitNetwork,
 } from "@reown/appkit/networks";
+import { evmAppKitNetworks } from "@/lib/appkit-networks";
 import { SolanaAdapter } from "@reown/appkit-adapter-solana/react";
 import { EthersAdapter } from "@reown/appkit-adapter-ethers";
 import {
@@ -30,7 +30,7 @@ const solanaWeb3JsAdapter = new SolanaAdapter({
 
 // Networks supported by the app
 const networks: [AppKitNetwork, ...AppKitNetwork[]] = [
-  mainnet,
+  ...evmAppKitNetworks,
   solana,
   solanaTestnet,
   solanaDevnet,
@@ -40,7 +40,7 @@ const networks: [AppKitNetwork, ...AppKitNetwork[]] = [
 const metadata = {
   name: "rektSafe",
   description:
-    "Inheritance, private transfers, and hardware security on Solana and Ethereum.",
+    "Inheritance, private transfers, and hardware security on Solana and supported EVM mainnets.",
   url: "https://rektsafe.com",
   icons: ["https://rektsafe.com/icon.png"],
 };

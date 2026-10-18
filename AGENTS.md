@@ -188,7 +188,7 @@ const nextConfig = {
 |-------|-------------|
 | `/` | Landing page |
 | `/zksig/` | zkSig - Threshold signatures. Solana wallets only. |
-| `/zksend/` | Private transfers. Solana: SOL, USDC, USDT. Ethereum mainnet: ETH and USDT. EVM nav includes zkSend. Other EVM networks are asked to switch to Ethereum. |
+| `/zksend/` | Private transfers. Solana: SOL, USDC, USDT. EVM uses the wallet's selected Privacy Cash mainnet: Ethereum (ETH, USDT), Base (ETH, USDC), BNB Smart Chain (BNB, USDT), Robinhood Chain (ETH, USDG). Other EVM networks, including testnets, are asked to switch. |
 | `/wallet/` | RektSafe Vault - coming-soon hardware wallet. Navbar label is **Wallet**. Do not add a footer link. Do not label any link just "Vault". The product name is RektSafe Vault. |
 | `/privacy/` | Privacy policy |
 | `/terms/` | Terms of service |
@@ -339,18 +339,26 @@ Home discovery lives in `components/hardware-teaser.tsx` and a hero link. Do not
 ## Privacy Cash SDK Integration
 
 ### Overview
-The app integrates `privacycash` for Solana and `privacycash-evm` for Ethereum mainnet.
+The app integrates `privacycash` for Solana and `privacycash-evm` for the mainnets that SDK supports. zkSend passes the wallet's selected chain into every deposit, withdraw, and balance call. Do not omit `network`: the SDK otherwise falls back to Base.
 
-Solana zkSend still signs `Welcome to RektSafe. For Cypherpunks, By Cypherpunks!` and keeps that signature in memory. Ethereum zkSend signs exactly `Privacy Money account sign in` and stores it in `localStorage` as `evm_sign_<address>`, which is what the EVM SDK uses to decrypt notes. A different message makes shielded funds undecryptable.
+Solana zkSend still signs `Welcome to RektSafe. For Cypherpunks, By Cypherpunks!` and keeps that signature in memory. EVM zkSend signs exactly `Privacy Money account sign in` and stores it in `localStorage` as `evm_sign_<address>`, which is what the EVM SDK uses to decrypt notes. A different message makes shielded funds undecryptable. The same signature is reused when the address switches among supported EVM mainnets.
 
-Ethereum deposits and withdrawals use `ETH_NETWORK`. Supported pools are ETH and USDT (`0xdAC17F958D2ee523a2206206994597C13D831ec7`). Withdrawals are relayed. The amount entered is deducted from the private balance, and the network fee plus protocol fee come out of that amount. `WalletGuard` accepts an EVM wallet on `/zksend/` only when `allowEthereum` is set and the chain is Ethereum. Other EVM networks are asked to switch to Ethereum. AppKit lists Ethereum mainnet as the EVM network.
+Supported EVM mainnets, and only the pools privacycash-evm actually configures:
+
+- Ethereum (chain 1): ETH and USDT (`0xdAC17F958D2ee523a2206206994597C13D831ec7`, 6 decimals). USDC has no pool.
+- Base (chain 8453): ETH and USDC (`0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`, 6 decimals).
+- BNB Smart Chain (chain 56): BNB and USDT (`0x55d398326f99059fF775485246999027B3197955`, 18 decimals). The SDK token for native BNB is `bnb`, not `eth`.
+- Robinhood Chain (chain 4663): ETH and USDG (`0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168`, 6 decimals).
+
+Testnets are rejected, including Robinhood testnet 46630. `WalletGuard` accepts an EVM wallet on `/zksend/` only when `allowEthereum` is set and the chain is one of those four mainnets. AppKit lists those four plus the existing Solana networks. The navbar and zkSend page show the selected network name. Withdrawals are relayed. The amount entered is deducted from the private balance, and the network fee plus protocol fee come out of that amount. MAX on a native shield leaves 0.005 of that native token for gas.
 
 ### Supported Tokens
 - **SOL** - Native Solana
-- **USDC** - `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` (Solana)
-- **USDT** - `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB` (Solana)
-- **ETH** - Ethereum mainnet
-- **USDT** - `0xdAC17F958D2ee523a2206206994597C13D831ec7` (Ethereum)
+- **USDC** - `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` (Solana) and Base
+- **USDT** - `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB` (Solana), Ethereum (6 decimals), BNB Smart Chain (18 decimals)
+- **ETH** - Ethereum, Base, and Robinhood Chain
+- **BNB** - BNB Smart Chain
+- **USDG** - Robinhood Chain
 
 ### SDK Wrapper
 Located at `app/zksend/lib/privacy-cash-sdk.ts`:

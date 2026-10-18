@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A client-side platform for crypto inheritance and private transfers. Split keys with threshold signatures, encrypt sensitive data, and transfer assets privately on Solana or Ethereum. RektSafe does not hold your keys or files.
+A client-side platform for crypto inheritance and private transfers. Split keys with threshold signatures, encrypt sensitive data, and transfer assets privately on Solana or a supported EVM mainnet. RektSafe does not hold your keys or files.
 
 ![Cypherpunk Theme](https://img.shields.io/badge/Theme-Cypherpunk-00ff88)
 ![Crypto](https://img.shields.io/badge/Crypto-AES--256%2FEd25519-00d4ff)
@@ -17,7 +17,7 @@ A client-side platform for crypto inheritance and private transfers. Split keys 
 | Feature | Description |
 |---------|-------------|
 | **🔐 zkSig** | Threshold signatures—split keys, encrypt files, sign & verify messages |
-| **🕵️ zkSend** | Private transfers—shield, send, and unshield on Solana (SOL, USDC, USDT) or Ethereum (ETH, USDT) |
+| **🕵️ zkSend** | Private transfers—shield, send, and unshield on Solana (SOL, USDC, USDT) or a Privacy Cash mainnet: Ethereum (ETH, USDT), Base (ETH, USDC), BNB Smart Chain (BNB, USDT), Robinhood Chain (ETH, USDG) |
 | **👛 RektSafe Vault** | Coming-soon hardware wallet at `/wallet/` — self-custody, passkeys, and transaction warnings |
 | **⛓️ Multi-Chain** | Solana + EVM wallet support via Reown AppKit |
 | **🛡️ Browser Crypto** | AES-256-GCM and Ed25519 in the browser. zkSend adds zero-knowledge proofs |
@@ -48,7 +48,7 @@ A client-side platform for crypto inheritance and private transfers. Split keys 
 | **Wagmi / Viem** | EVM chain interaction |
 | **Ethers** | EVM transaction signing and utilities |
 | **Web Crypto API** | Cryptography (Ed25519, AES-256-GCM, SHA-256) |
-| **Privacy Cash SDK** | Private transactions on Solana and Ethereum |
+| **Privacy Cash SDK** | Private transactions on Solana and supported EVM mainnets |
 | **@lightprotocol/hasher.rs** | ZK proof generation |
 
 ## 📁 Project Structure
@@ -57,7 +57,7 @@ A client-side platform for crypto inheritance and private transfers. Split keys 
 rektsafe/
 ├── app/                  # Next.js app directory
 │   ├── zksig/           # zkSig - Threshold signatures
-│   ├── zksend/          # zkSend - Private transfers on Solana and Ethereum
+│   ├── zksend/          # zkSend - Private transfers on Solana and EVM mainnets
 │   ├── wallet/          # RektSafe Vault - coming-soon hardware wallet (nav label: Wallet)
 │   ├── privacy/         # Privacy policy page
 │   ├── terms/           # Terms of service page
@@ -156,7 +156,7 @@ Push to `main` triggers deployment via GitHub Actions. The workflow uses Node.js
 
 - **Home** (`/`) - Landing page with features and how it works
 - **zkSig** (`/zksig/`) - Threshold signatures - split keys, encrypt, sign & verify
-- **zkSend** (`/zksend/`) - Private shielding and transfers. Solana: SOL, USDC, USDT. Ethereum mainnet: ETH, USDT.
+- **zkSend** (`/zksend/`) - Private shielding and transfers. Solana: SOL, USDC, USDT. EVM follows the wallet's selected Privacy Cash mainnet: Ethereum (ETH, USDT), Base (ETH, USDC), BNB Smart Chain (BNB, USDT), Robinhood Chain (ETH, USDG).
 - **Wallet** (`/wallet/`) - RektSafe Vault, a coming-soon hardware security device. The navbar label is Wallet.
 - **Privacy** (`/privacy/`) - Privacy policy
 - **Terms** (`/terms/`) - Terms of service
@@ -180,8 +180,8 @@ Each public route has a title, description, canonical URL, and Open Graph / Twit
 ## ⛓️ Wallet & Networks
 
 - Connect a **Solana** wallet (Phantom, Solflare, etc.) to use `zkSig` and `zkSend`.
-- Connect an **EVM** wallet (MetaMask, WalletConnect, etc.) on **Ethereum mainnet** to shield and send ETH or USDT in `zkSend`. Other EVM networks are asked to switch to Ethereum.
-- The navbar shows the connected address and current native balance for the selected network.
+- Connect an **EVM** wallet (MetaMask, WalletConnect, etc.) on a **Privacy Cash mainnet**. zkSend uses the network selected in the wallet: Ethereum (ETH, USDT), Base (ETH, USDC), BNB Smart Chain (BNB, USDT), or Robinhood Chain (ETH, USDG). Other EVM networks, including testnets, are asked to switch to one of those mainnets.
+- The navbar shows the connected network, address, and current native balance.
 
 ## 🎨 Theme Colors
 

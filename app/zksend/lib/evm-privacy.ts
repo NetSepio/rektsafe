@@ -2,20 +2,19 @@
 
 import { BrowserProvider } from "ethers";
 import type { Eip1193Provider } from "@/lib/eip1193";
+import { privacyNetworkById } from "@/lib/chains";
+import type { EvmPrivacyToken } from "@/lib/evm-tokens";
 import { getPublicBasePath } from "@/lib/browser-polyfills/hasher-wasm-init";
 
 // Must match the Privacy Cash EVM SDK exactly. A different message derives a
 // different key and makes shielded funds undecryptable.
 export const EVM_SIGN_MESSAGE = "Privacy Money account sign in";
 
-export const ETH_USDT_ADDRESS =
-  "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+// Left untouched when the user presses MAX on a native-token shield, so the
+// deposit transaction still has gas. Same reserve on every supported mainnet.
+export const NATIVE_GAS_RESERVE = 0.005;
 
-// Left untouched when the user presses MAX on an ETH shield, so the deposit
-// transaction still has gas.
-export const ETH_GAS_RESERVE = 0.005;
-
-export type EvmPrivacyToken = "eth" | "usdt";
+export type { EvmPrivacyToken };
 
 export function evmSignStorageKey(address: string) {
   return `evm_sign_${address}`;
@@ -94,47 +93,61 @@ async function sendUnsignedTx(
   return tx.hash;
 }
 
-export async function depositEthereum({
+function assertSupportedChain(chainId: number) {
+  if (!privacyNetworkById(chainId)) {
+    throw new Error(
+      "This network is not a Privacy Cash mainnet. Switch to Ethereum, Base, BNB Smart Chain, or Robinhood Chain.",
+    );
+  }
+}
+
+export async function depositEvm({
   amount,
   token,
   address,
   signature,
   walletProvider,
+  chainId,
 }: {
   amount: number;
   token: EvmPrivacyToken;
   address: string;
   signature: string;
   walletProvider: Eip1193Provider;
+  chainId: number;
 }): Promise<string> {
-  const { deposit, ETH_NETWORK } = await import("privacycash-evm");
+  assertSupportedChain(chainId);
+  const { deposit } = await import("privacycash-evm");
   const hash = await deposit({
     depositAmountInput: amount,
     keyBasePath: circuitBasePath(),
     signature,
     address,
     token,
-    network: ETH_NETWORK,
+    network: chainId,
     txSender: (unsignedTx: Record<string, unknown>) =>
       sendUnsignedTx(walletProvider, unsignedTx),
   });
   return typeof hash === "string" ? hash : String(hash);
 }
 
-export async function withdrawEthereum({
+export async function withdrawEvm({
   amount,
   token,
   recipient,
   address,
   signature,
+  chainId,
 }: {
   amount: number;
   token: EvmPrivacyToken;
   recipient: string;
   address: string;
   signature: string;
+  chainId: number;
 }): Promise<string> {
-  const { withdraw, ETH_NETWORK } = await import("privacycash-evm");
+  assertSupportedChain(chainId);
+  const { withdraw } = await import("privacycash-evm");
   const hash = await withdraw({
     withdrawAmountInput: amount,
     recipient,
@@ -142,26 +155,29 @@ export async function withdrawEthereum({
     signature,
     address,
     token,
-    network: ETH_NETWORK,
+    network: chainId,
   });
   return typeof hash === "string" ? hash : String(hash);
 }
 
-export async function getEthereumPrivateBalance({
+export async function getEvmPrivateBalance({
   address,
   signature,
   token,
+  chainId,
 }: {
   address: string;
   signature: string;
   token: EvmPrivacyToken;
+  chainId: number;
 }): Promise<number> {
-  const { getBalance, ETH_NETWORK } = await import("privacycash-evm");
+  assertSupportedChain(chainId);
+  const { getBalance } = await import("privacycash-evm");
   const { balance } = await getBalance({
     signature,
     address,
     token,
-    network: ETH_NETWORK,
+    network: chainId,
   });
   const value = Number(balance);
   return Number.isFinite(value) ? value : 0;

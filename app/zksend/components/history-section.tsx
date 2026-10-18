@@ -282,7 +282,7 @@ export function HistorySection() {
                 {tx.txSignature && (
                   <div className="mt-3 pt-3 border-t border-border/30">
                     <a
-                      href={txExplorerUrl(tx.chain, tx.txSignature)}
+                      href={txExplorerUrl(tx.chain, tx.txSignature, tx.chainId)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs text-primary hover:underline"

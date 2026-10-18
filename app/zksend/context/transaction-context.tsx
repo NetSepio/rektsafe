@@ -23,6 +23,7 @@ export interface Transaction {
   txSignature?: string;
   error?: string;
   chain?: TransferChain;
+  chainId?: number;
 }
 
 interface TransactionContextType {

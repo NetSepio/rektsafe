@@ -111,8 +111,8 @@ export default function TermsPage() {
                   There is no check-in timer and no automatic unlock
                 </li>
                 <li>
-                  Private transfers (zkSend) on Solana and Ethereum through
-                  Privacy Cash
+                  Private transfers (zkSend) on Solana and supported EVM
+                  mainnets through Privacy Cash
                 </li>
                 <li>
                   An informational page for RektSafe Vault, a hardware wallet

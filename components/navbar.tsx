@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { useAppKitAccount, useDisconnect, useAppKitNetwork, useAppKitBalance } from "@reown/appkit/react";
 import { useSnsName } from "@/hooks/use-sns-name";
 import { useWalletType } from "@/hooks/use-wallet-type";
+import { privacyNetworkById } from "@/lib/chains";
 import { ConnectWalletButton } from "@/components/connect-wallet-button";
 
 interface NavLink {
@@ -103,6 +104,9 @@ function WalletStatus() {
 
   if (!isConnected || !address) return null;
 
+  const knownNetwork = privacyNetworkById(Number(caipNetwork?.id));
+  const networkLabel = knownNetwork?.shortName ?? caipNetwork?.name;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -112,6 +116,9 @@ function WalletStatus() {
       {/* Compact wallet pill */}
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30">
         <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+        {networkLabel && (
+          <span className="text-xs font-mono text-primary/80">{networkLabel}</span>
+        )}
         {snsName ? (
           <>
             <AtSign className="w-3.5 h-3.5 text-primary" />

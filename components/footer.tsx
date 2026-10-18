@@ -8,7 +8,7 @@ export function Footer() {
   return (
     <footer className="border-t border-border/50 bg-background/50 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col items-center gap-6 md:grid md:grid-cols-3 md:items-center">
+        <div className="flex flex-col items-center gap-6 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
           {/* Social Links */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -59,10 +59,10 @@ export function Footer() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
-            className="flex items-center justify-center gap-2 text-center"
+            className="flex items-center justify-center gap-2 text-center whitespace-nowrap"
           >
             <Shield className="w-5 h-5 text-primary shrink-0" />
-            <span className="font-mono text-sm text-muted-foreground">
+            <span className="font-mono text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
               <span className="text-foreground font-semibold">rektSafe</span>
               <span className="mx-2">|</span>
               <span>

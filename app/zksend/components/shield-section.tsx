@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Shield,
@@ -21,7 +21,7 @@ import { useTransactions } from "../context/transaction-context";
 import { useBalances, type TokenSymbol } from "../hooks/use-balances";
 import { useWalletSession } from "@/components/wallet-session-provider";
 import { privacyCashSDK } from "../lib/privacy-cash-sdk";
-import { depositEthereum, ETH_GAS_RESERVE } from "../lib/evm-privacy";
+import { depositEvm, NATIVE_GAS_RESERVE } from "../lib/evm-privacy";
 import { txExplorerUrl } from "../lib/explorer";
 
 export function ShieldSection() {
@@ -30,7 +30,8 @@ export function ShieldSection() {
   const { isInitialized: isSessionInitialized, evmSignature } =
     useWalletSession();
   const { walletProvider } = useAppKitProvider<Eip1193Provider>("eip155");
-  const { tokens, shieldableTokens, refresh, chain } = useBalances();
+  const { tokens, shieldableTokens, refresh, chain, chainId, network } =
+    useBalances();
 
   const [selectedToken, setSelectedToken] = useState<TokenSymbol | null>(null);
   const [amount, setAmount] = useState("");
@@ -49,9 +50,14 @@ export function ShieldSection() {
 
   const publicBalance = currentToken?.publicBalance || 0;
 
+  useEffect(() => {
+    setSelectedToken(null);
+    setAmount("");
+  }, [chainId]);
+
   const handleMax = () => {
-    if (chain === "ethereum" && currentToken?.symbol === "ETH") {
-      setAmount(Math.max(0, publicBalance - ETH_GAS_RESERVE).toString());
+    if (chain === "ethereum" && currentToken?.isNative) {
+      setAmount(Math.max(0, publicBalance - NATIVE_GAS_RESERVE).toString());
       return;
     }
     setAmount(publicBalance.toString());
@@ -100,6 +106,7 @@ export function ShieldSection() {
       amountIn: parseFloat(amount),
       status: "pending",
       chain,
+      chainId,
     });
 
     try {
@@ -109,12 +116,16 @@ export function ShieldSection() {
         if (!address) {
           throw new Error("Wallet not connected");
         }
-        signature = await depositEthereum({
+        if (chainId === undefined || !currentToken.privacyToken) {
+          throw new Error("Select a supported network and token.");
+        }
+        signature = await depositEvm({
           amount: parseFloat(amount),
-          token: selectedToken === "USDT" ? "usdt" : "eth",
+          token: currentToken.privacyToken,
           address,
           signature: evmSignature!,
           walletProvider: walletProvider!,
+          chainId,
         });
       } else if (currentToken.isNative) {
         const lamports = Math.floor(parseFloat(amount) * 1e9);
@@ -330,12 +341,14 @@ export function ShieldSection() {
         <div className="p-4 rounded-xl bg-muted/30 space-y-2">
           {chain === "ethereum" ? (
             <p className="text-sm text-muted-foreground font-mono">
-              The full amount is shielded. You pay Ethereum gas from your
-              public ETH balance
-              {selectedToken === "USDT"
-                ? ", and USDT asks for an approval before the shield transaction"
+              The full amount is shielded. You pay gas on{" "}
+              {network?.name ?? "this network"} from your public{" "}
+              {network?.nativeSymbol ?? "native"} balance
+              {currentToken && !currentToken.isNative
+                ? `, and ${currentToken.symbol} asks for an approval before the shield transaction`
                 : ""}
-              . MAX on ETH leaves {ETH_GAS_RESERVE} ETH for gas.
+              . MAX on {network?.nativeSymbol ?? "the native token"} leaves{" "}
+              {NATIVE_GAS_RESERVE} {network?.nativeSymbol ?? ""} for gas.
             </p>
           ) : (
             <>
@@ -408,7 +421,7 @@ export function ShieldSection() {
               </p>
               {status.txSignature && (
                 <a
-                  href={txExplorerUrl(chain, status.txSignature)}
+                  href={txExplorerUrl(chain, status.txSignature, chainId)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"

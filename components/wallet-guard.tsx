@@ -1,9 +1,10 @@
 "use client";
 
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
-import { mainnet } from "@reown/appkit/networks";
 import { useWalletType } from "@/hooks/use-wallet-type";
-import { useIsEthereum } from "@/hooks/use-is-ethereum";
+import { usePrivacyNetwork } from "@/hooks/use-privacy-network";
+import { appKitNetworkById } from "@/lib/appkit-networks";
+import { joinTokens, PRIVACY_NETWORKS } from "@/lib/chains";
 import { motion } from "framer-motion";
 import { Wallet, Shield, Lock, Network } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ import { ConnectWalletButton } from "@/components/connect-wallet-button";
 
 interface WalletGuardProps {
   children: ReactNode;
-  /** zkSend accepts an Ethereum mainnet wallet for shielded ETH and USDT. */
+  /** zkSend accepts an EVM wallet on a Privacy Cash mainnet. */
   allowEthereum?: boolean;
 }
 
@@ -40,8 +41,8 @@ function WalletConnectScreen() {
           </h1>
           <p className="text-muted-foreground font-mono text-sm max-w-lg mx-auto">
             Access zkSig for threshold signatures or zkSend for private
-            transfers on Solana and Ethereum. Connect a Solana or EVM wallet
-            to continue.
+            transfers on Solana and supported EVM mainnets. Connect a Solana
+            or EVM wallet to continue.
           </p>
         </motion.div>
 
@@ -234,8 +235,8 @@ function SessionInitScreen({
   );
 }
 
-function SwitchToEthereumScreen() {
-  const { switchNetwork } = useAppKitNetwork();
+function SwitchNetworkScreen() {
+  const { switchNetwork, caipNetwork } = useAppKitNetwork();
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-background">
@@ -243,25 +244,43 @@ function SwitchToEthereumScreen() {
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/30 mb-4">
           <Network className="w-4 h-4 text-accent" />
           <span className="text-xs font-mono text-accent uppercase tracking-wider font-semibold">
-            Ethereum Required
+            Unsupported Network
           </span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-3">
-          <span className="text-foreground">Switch to </span>
-          <span className="gradient-text">Ethereum</span>
+          <span className="text-foreground">Switch </span>
+          <span className="gradient-text">Network</span>
         </h1>
-        <p className="text-muted-foreground font-mono text-sm max-w-lg mx-auto mb-6">
-          Shielded transfers for EVM wallets run on Ethereum mainnet, for ETH
-          and USDT. Switch networks to continue.
+        <p className="text-muted-foreground font-mono text-sm max-w-lg mx-auto">
+          Shielded transfers use the network selected in your wallet. Privacy
+          Cash supports these mainnets. Testnets are not included.
         </p>
-        <Button
-          size="lg"
-          onClick={() => switchNetwork(mainnet)}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground font-mono"
-        >
-          <Network className="w-5 h-5 mr-2" />
-          Switch to Ethereum
-        </Button>
+        {caipNetwork?.name && (
+          <p className="text-sm font-mono text-foreground mt-2">
+            Connected network: {caipNetwork.name}
+          </p>
+        )}
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          {PRIVACY_NETWORKS.map((network) => (
+            <Button
+              key={network.chainId}
+              size="lg"
+              onClick={() => {
+                const target = appKitNetworkById(network.chainId);
+                if (target) switchNetwork(target);
+              }}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-mono"
+            >
+              <Network className="w-5 h-5 mr-2" />
+              <span className="text-left">
+                <span className="block">{network.name}</span>
+                <span className="block text-[10px] font-normal opacity-80">
+                  {joinTokens(network.tokens)}
+                </span>
+              </span>
+            </Button>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -285,7 +304,7 @@ function WrongWalletScreen() {
         <p className="text-muted-foreground font-mono text-sm max-w-lg mx-auto">
           This feature is built for Solana. An EVM wallet is connected.
           Disconnect it and connect a Solana wallet to continue, or open zkSend
-          for shielded ETH and USDT.
+          for shielded transfers on a supported mainnet.
         </p>
       </div>
     </div>
@@ -299,7 +318,7 @@ function WalletGuardInner({
 }: WalletGuardProps) {
   const { isConnected } = useAppKitAccount();
   const walletType = useWalletType();
-  const isEthereum = useIsEthereum();
+  const { isSupported } = usePrivacyNetwork();
   const {
     isInitialized,
     isLoading,
@@ -325,14 +344,14 @@ function WalletGuardInner({
   ]);
 
   useEffect(() => {
-    if (!allowEthereum || walletType !== "evm" || !isEthereum) return;
+    if (!allowEthereum || walletType !== "evm" || !isSupported) return;
     if (isConnected && !evmSignature && !isLoading && !error) {
       initializeEvmSession();
     }
   }, [
     allowEthereum,
     walletType,
-    isEthereum,
+    isSupported,
     isConnected,
     evmSignature,
     isLoading,
@@ -348,8 +367,8 @@ function WalletGuardInner({
     if (!allowEthereum) {
       return <WrongWalletScreen />;
     }
-    if (!isEthereum) {
-      return <SwitchToEthereumScreen />;
+    if (!isSupported) {
+      return <SwitchNetworkScreen />;
     }
     if (!evmSignature) {
       return (
@@ -403,8 +422,8 @@ export function WalletGuard({ children, allowEthereum }: WalletGuardProps) {
               <span className="gradient-text">Wallet</span>
             </h1>
             <p className="text-muted-foreground font-mono text-sm max-w-lg mx-auto">
-              Secure access to your threshold signature vault and private
-              transfers. Connect your Solana wallet to get started.
+              Secure access to threshold signatures and private transfers.
+              Connect a Solana or EVM wallet to get started.
             </p>
           </div>
 
