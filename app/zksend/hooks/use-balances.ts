@@ -3,12 +3,30 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
 import type { Provider } from "@reown/appkit-adapter-solana";
+import {
+  BrowserProvider,
+  Contract,
+  JsonRpcProvider,
+  formatEther,
+  formatUnits,
+} from "ethers";
+import type { Eip1193Provider } from "@/lib/eip1193";
+import { useWalletType } from "@/hooks/use-wallet-type";
+import { useIsEthereum } from "@/hooks/use-is-ethereum";
 import { useWalletSession } from "@/components/wallet-session-provider";
 import {
   privacyCashSDK,
   SUPPORTED_TOKENS,
-  type TokenSymbol,
+  type TokenSymbol as SolanaTokenSymbol,
 } from "../lib/privacy-cash-sdk";
+import {
+  ETH_USDT_ADDRESS,
+  getEthereumPrivateBalance,
+  type EvmPrivacyToken,
+} from "../lib/evm-privacy";
+import type { TransferChain } from "../lib/explorer";
+
+export type TokenSymbol = SolanaTokenSymbol | "ETH";
 
 export interface TokenBalance {
   symbol: TokenSymbol;
@@ -25,10 +43,39 @@ export interface Balances {
   [key: string]: TokenBalance;
 }
 
+const ETHEREUM_TOKENS: Record<
+  "ETH" | "USDT",
+  Omit<TokenBalance, "publicBalance" | "privateBalance">
+> = {
+  ETH: {
+    symbol: "ETH",
+    name: "Ether",
+    decimals: 18,
+    color: "#00d4ff",
+    isNative: true,
+    mint: null,
+  },
+  USDT: {
+    symbol: "USDT",
+    name: "Tether",
+    decimals: 6,
+    color: "#ff006e",
+    isNative: false,
+    mint: ETH_USDT_ADDRESS,
+  },
+};
+
 export function useBalances() {
   const { address, isConnected } = useAppKitAccount();
+  const walletType = useWalletType();
+  const isEthereum = useIsEthereum();
+  const chain: TransferChain =
+    walletType === "evm" && isEthereum ? "ethereum" : "solana";
   const { walletProvider } = useAppKitProvider<Provider>("solana");
-  const { isInitialized: isSessionInitialized } = useWalletSession();
+  const { walletProvider: evmProvider } =
+    useAppKitProvider<Eip1193Provider>("eip155");
+  const { isInitialized: isSessionInitialized, evmSignature } =
+    useWalletSession();
   const [balances, setBalances] = useState<Balances>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSDKInitialized, setIsSDKInitialized] = useState(false);
@@ -38,6 +85,17 @@ export function useBalances() {
   // Initialize balances structure
   const initializeBalances = useCallback((): Balances => {
     const initial: Balances = {};
+    if (chain === "ethereum") {
+      Object.values(ETHEREUM_TOKENS).forEach((config) => {
+        initial[config.symbol] = {
+          ...config,
+          publicBalance: 0,
+          privateBalance: 0,
+        };
+      });
+      return initial;
+    }
+
     Object.entries(SUPPORTED_TOKENS).forEach(([symbol, config]) => {
       initial[symbol] = {
         symbol: symbol as TokenSymbol,
@@ -51,7 +109,7 @@ export function useBalances() {
       };
     });
     return initial;
-  }, []);
+  }, [chain]);
 
   // Initialize SDK with wallet provider for transaction signing
   const initializeSDK = useCallback(async () => {
@@ -82,11 +140,74 @@ export function useBalances() {
     }
   }, [address, isSessionInitialized, walletProvider]);
 
+  const fetchEthereumBalances = useCallback(async () => {
+    if (!address) return;
+
+    const newBalances = initializeBalances();
+    let provider: BrowserProvider | JsonRpcProvider;
+
+    if (evmProvider) {
+      provider = new BrowserProvider(evmProvider);
+    } else {
+      const { ETH_NETWORK } = await import("privacycash-evm");
+      provider = new JsonRpcProvider(ETH_NETWORK.rpcUrl);
+    }
+
+    const [ethBalance, usdtRaw] = await Promise.all([
+      provider.getBalance(address),
+      new Contract(
+        ETH_USDT_ADDRESS,
+        ["function balanceOf(address) view returns (uint256)"],
+        provider,
+      ).balanceOf(address) as Promise<bigint>,
+    ]);
+
+    newBalances.ETH.publicBalance = Number(formatEther(ethBalance));
+    newBalances.USDT.publicBalance = Number(formatUnits(usdtRaw, 6));
+
+    if (evmSignature) {
+      const tokens: EvmPrivacyToken[] = ["eth", "usdt"];
+      await Promise.all(
+        tokens.map(async (token) => {
+          const symbol = token === "eth" ? "ETH" : "USDT";
+          newBalances[symbol].privateBalance = await getEthereumPrivateBalance(
+            {
+              address,
+              signature: evmSignature,
+              token,
+            },
+          );
+        }),
+      );
+      setIsSDKInitialized(true);
+    } else {
+      setIsSDKInitialized(false);
+    }
+
+    setBalances(newBalances);
+  }, [address, evmProvider, evmSignature, initializeBalances]);
+
   const fetchBalances = useCallback(async () => {
     if (!isConnected || !address) {
       setBalances(initializeBalances());
       setIsSDKInitialized(false);
       initializationAttempted.current = false;
+      return;
+    }
+
+    if (chain === "ethereum") {
+      setIsLoading(true);
+      setError(null);
+      try {
+        await fetchEthereumBalances();
+      } catch (err) {
+        console.error("Error fetching Ethereum balances:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch balances",
+        );
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
 
@@ -146,7 +267,14 @@ export function useBalances() {
     } finally {
       setIsLoading(false);
     }
-  }, [address, isConnected, initializeBalances, initializeSDK]);
+  }, [
+    address,
+    chain,
+    isConnected,
+    initializeBalances,
+    initializeSDK,
+    fetchEthereumBalances,
+  ]);
 
   useEffect(() => {
     fetchBalances();
@@ -165,15 +293,15 @@ export function useBalances() {
   // Get array of all tokens for UI rendering
   const tokensArray = useCallback((): TokenBalance[] => {
     return Object.values(balances).sort((a, b) => {
-      // Sort by: SOL first, then by total balance, then alphabetically
-      if (a.symbol === "SOL") return -1;
-      if (b.symbol === "SOL") return 1;
+      const native = chain === "ethereum" ? "ETH" : "SOL";
+      if (a.symbol === native) return -1;
+      if (b.symbol === native) return 1;
       const aTotal = a.publicBalance + a.privateBalance;
       const bTotal = b.publicBalance + b.privateBalance;
       if (bTotal !== aTotal) return bTotal - aTotal;
       return a.symbol.localeCompare(b.symbol);
     });
-  }, [balances]);
+  }, [balances, chain]);
 
   // Get tokens with public balance > 0 (for shielding)
   const getShieldableTokens = useCallback((): TokenBalance[] => {
@@ -187,6 +315,7 @@ export function useBalances() {
 
   return {
     balances,
+    chain,
     tokens: tokensArray(),
     shieldableTokens: getShieldableTokens(),
     privateTokens: getPrivateTokens(),

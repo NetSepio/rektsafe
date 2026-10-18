@@ -27,6 +27,7 @@ import {
   useTransactions,
   type Transaction,
 } from "../context/transaction-context";
+import { txExplorerUrl } from "../lib/explorer";
 import { useAppKitAccount } from "@reown/appkit/react";
 
 const ITEMS_PER_PAGE = 10;
@@ -281,7 +282,7 @@ export function HistorySection() {
                 {tx.txSignature && (
                   <div className="mt-3 pt-3 border-t border-border/30">
                     <a
-                      href={`https://explorer.solana.com/tx/${tx.txSignature}`}
+                      href={txExplorerUrl(tx.chain, tx.txSignature)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs text-primary hover:underline"

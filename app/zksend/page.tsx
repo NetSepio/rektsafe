@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WalletGuard } from "@/components/wallet-guard";
+import { useIsEthereum } from "@/hooks/use-is-ethereum";
 import { BalanceCard } from "./components/balance-card";
 import { ShieldSection } from "./components/shield-section";
 import { SendSection } from "./components/send-section";
@@ -10,16 +11,15 @@ import { UnshieldSection } from "./components/unshield-section";
 import { HistorySection } from "./components/history-section";
 import { TabNavigation } from "./components/tab-navigation";
 import { TransactionProvider } from "./context/transaction-context";
-import { useAppKitAccount } from "@reown/appkit/react";
 
 export type Tab = "shield" | "send" | "unshield" | "history";
 
 export default function ZkSendPage() {
   const [activeTab, setActiveTab] = useState<Tab>("shield");
-  const { isConnected, address } = useAppKitAccount();
+  const isEthereum = useIsEthereum();
 
   return (
-    <WalletGuard>
+    <WalletGuard allowEthereum>
       <TransactionProvider>
         <div className="min-h-screen pt-20 pb-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
@@ -39,8 +39,9 @@ export default function ZkSendPage() {
                 <span className="gradient-text">Transfers</span>
               </h1>
               <p className="text-muted-foreground font-mono text-sm max-w-xl mx-auto">
-                Shield your assets, send privately, and unshield when needed.
-                Your transactions, your privacy.
+                {isEthereum
+                  ? "Shield ETH and USDT on Ethereum, send them privately, and unshield when you want a public balance again."
+                  : "Shield your assets, send privately, and unshield when needed. Your transactions, your privacy."}
               </p>
             </motion.div>
 

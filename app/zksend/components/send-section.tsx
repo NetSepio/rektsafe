@@ -16,12 +16,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAppKitAccount } from "@reown/appkit/react";
 import { useTransactions } from "../context/transaction-context";
-import { useBalances } from "../hooks/use-balances";
+import { useBalances, type TokenSymbol } from "../hooks/use-balances";
 import { useWalletSession } from "@/components/wallet-session-provider";
-import { privacyCashSDK, type TokenSymbol } from "../lib/privacy-cash-sdk";
+import { privacyCashSDK } from "../lib/privacy-cash-sdk";
+import { isEthAddress, withdrawEthereum } from "../lib/evm-privacy";
+import { txExplorerUrl } from "../lib/explorer";
 
-// Validate Solana address
 const isValidSolanaAddress = (address: string): boolean => {
   try {
     return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
@@ -31,9 +33,11 @@ const isValidSolanaAddress = (address: string): boolean => {
 };
 
 export function SendSection() {
+  const { address } = useAppKitAccount();
   const { addTransaction, updateTransaction } = useTransactions();
-  const { isInitialized: isSessionInitialized } = useWalletSession();
-  const { tokens, privateTokens, refresh } = useBalances();
+  const { isInitialized: isSessionInitialized, evmSignature } =
+    useWalletSession();
+  const { tokens, privateTokens, refresh, chain } = useBalances();
 
   const [selectedToken, setSelectedToken] = useState<TokenSymbol | null>(null);
   const [amount, setAmount] = useState("");
@@ -58,10 +62,17 @@ export function SendSection() {
     setAmount(privateBalance.toString());
   };
 
+  const recipientIsValid = (value: string) =>
+    chain === "ethereum" ? isEthAddress(value) : isValidSolanaAddress(value);
+
   const handleRecipientChange = (value: string) => {
     setRecipient(value);
-    if (value && !isValidSolanaAddress(value)) {
-      setRecipientError("Invalid Solana address");
+    if (value && !recipientIsValid(value)) {
+      setRecipientError(
+        chain === "ethereum"
+          ? "Invalid Ethereum address"
+          : "Invalid Solana address",
+      );
     } else {
       setRecipientError("");
     }
@@ -83,7 +94,7 @@ export function SendSection() {
       return;
     }
 
-    if (!isValidSolanaAddress(recipient)) {
+    if (!recipientIsValid(recipient)) {
       setStatus({ type: "error", message: "Invalid recipient address" });
       return;
     }
@@ -93,7 +104,16 @@ export function SendSection() {
       return;
     }
 
-    if (!isSessionInitialized) {
+    if (chain === "ethereum") {
+      if (!evmSignature || !address) {
+        setStatus({
+          type: "error",
+          message:
+            "Wallet session not initialized. Please sign the message first.",
+        });
+        return;
+      }
+    } else if (!isSessionInitialized) {
       setStatus({
         type: "error",
         message:
@@ -105,29 +125,43 @@ export function SendSection() {
     setIsLoading(true);
     setStatus({ type: null, message: "" });
 
-    const txId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    addTransaction({
+    const txId = addTransaction({
       type: "send",
       assetIn: selectedToken,
       amountIn: parseFloat(amount),
       recipient: recipient,
       status: "pending",
+      chain,
     });
 
     try {
-      // Private transfer by withdrawing to recipient
-      const lamports = Math.floor(parseFloat(amount) * 1e9);
-      const result = await privacyCashSDK.withdraw(lamports, recipient);
+      let signature: string;
+      if (chain === "ethereum") {
+        if (!address || !evmSignature) {
+          throw new Error("Wallet session not initialized.");
+        }
+        signature = await withdrawEthereum({
+          amount: parseFloat(amount),
+          token: selectedToken === "USDT" ? "usdt" : "eth",
+          recipient,
+          address,
+          signature: evmSignature,
+        });
+      } else {
+        const lamports = Math.floor(parseFloat(amount) * 1e9);
+        signature = (await privacyCashSDK.withdraw(lamports, recipient))
+          .signature;
+      }
 
       updateTransaction(txId, {
         status: "confirmed",
-        txSignature: result.signature,
+        txSignature: signature,
       });
 
       setStatus({
         type: "success",
         message: `Successfully sent ${amount} ${selectedToken} privately`,
-        txSignature: result.signature,
+        txSignature: signature,
       });
 
       setAmount("");
@@ -288,7 +322,11 @@ export function SendSection() {
             <Input
               value={recipient}
               onChange={(e) => handleRecipientChange(e.target.value)}
-              placeholder="Enter Solana address..."
+              placeholder={
+                chain === "ethereum"
+                  ? "Enter an Ethereum address (0x...)"
+                  : "Enter Solana address..."
+              }
               className="h-14 pr-12 font-mono text-sm"
             />
             <User className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -340,8 +378,9 @@ export function SendSection() {
                 Private Transfer
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                The recipient will receive funds from the privacy pool. The
-                connection to your wallet will be broken.
+                {chain === "ethereum"
+                  ? "The amount leaves your private balance. A network fee plus a 0.35% protocol fee are taken from it, and the recipient receives the rest from the Ethereum privacy pool."
+                  : "The recipient will receive funds from the privacy pool. The connection to your wallet will be broken."}
               </p>
             </div>
           </div>
@@ -402,7 +441,7 @@ export function SendSection() {
               </p>
               {status.txSignature && (
                 <a
-                  href={`https://explorer.solana.com/tx/${status.txSignature}`}
+                  href={txExplorerUrl(chain, status.txSignature)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"

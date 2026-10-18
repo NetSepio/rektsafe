@@ -26,7 +26,7 @@ const technologies = [
   {
     category: "Stack",
     items: [
-      { name: "Next.js 15", desc: "React framework" },
+      { name: "Next.js 16", desc: "React framework" },
       { name: "TypeScript", desc: "Type safety" },
       { name: "Tailwind CSS", desc: "Styling" },
       { name: "shadcn/ui", desc: "Components" },

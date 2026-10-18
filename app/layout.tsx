@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer";
 import { WalletProvider } from "@/components/wallet-provider";
 import { WalletSessionProvider } from "@/components/wallet-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
+import { ogImage, siteDescription } from "./metadata";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,24 +26,26 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "rektSafe | Dead Man's Switch for Crypto & Data",
+    default: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Private Transfers",
     template: "%s | rektSafe",
   },
-  description:
-    "Secure your digital legacy. A decentralized dead man's switch that safely passes your crypto, files, and data to your loved ones if something happens to you.",
+  description: `${siteDescription} For Cypherpunks, By Cypherpunks.`,
   keywords: [
     "crypto",
-    "dead man's switch",
     "inheritance",
     "blockchain",
     "encryption",
     "TSS",
     "threshold signatures",
     "Solana",
+    "Ethereum",
+    "zkSend",
+    "private transfers",
     "wallet",
     "digital legacy",
     "crypto inheritance",
-    "secure vault",
+    "self-custody",
+    "hardware wallet",
   ],
   authors: [{ name: "rektSafe", url: "https://rektsafe.com" }],
   creator: "rektSafe",
@@ -53,29 +56,20 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "rektSafe | Dead Man's Switch for Crypto & Data",
-    description:
-      "Secure your digital legacy. Pass your crypto and data to family if you're gone.",
+    title: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Private Transfers",
+    description: siteDescription,
     type: "website",
     url: "https://rektsafe.com",
     siteName: "rektSafe",
     locale: "en_US",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "rektSafe - Dead Man's Switch for Crypto & Data",
-      },
-    ],
+    images: [ogImage],
   },
   twitter: {
     card: "summary_large_image",
-    title: "rektSafe | Dead Man's Switch for Crypto & Data",
-    description:
-      "Secure your digital legacy. Pass your crypto and data to family if you're gone.",
-    creator: "@rektsafe",
-    images: ["/og-image.png"],
+    title: "rektSafe | Crypto Security Suite - Inheritance, Privacy & Private Transfers",
+    description: siteDescription,
+    creator: "@NetSepio",
+    images: [ogImage.url],
   },
   icons: {
     icon: [

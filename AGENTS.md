@@ -4,9 +4,9 @@
 
 ## Project Overview
 
-**rektSafe** is a decentralized dead man's switch application for crypto and data inheritance. It uses threshold signature schemes (TSS) to securely pass digital assets to beneficiaries, and now includes private transfers via zkSend.
+**rektSafe** is a client-side app for crypto inheritance and private transfers. Threshold signatures (zkSig) split a key into shares you distribute yourself. There is no check-in timer and no automatic unlock. zkSend does private transfers. RektSafe Vault is a coming-soon hardware wallet. Do not add a lending, yield, or NFT-vault product. The old zkVault route was removed because it conflicted with that positioning and with the hardware product name.
 
-- **Stack**: Next.js 15 + React 19 + TypeScript + Tailwind CSS
+- **Stack**: Next.js 16 + React 19 + TypeScript + Tailwind CSS
 - **Crypto**: Web Crypto API (Ed25519, AES-256-GCM, SHA-256), Privacy Cash SDK
 - **Theme**: Dark cypherpunk with neon accents
 - **Architecture**: Client-side only, static export (no SSR)
@@ -16,7 +16,7 @@
 ```
 rektsafe/
 ├── app/                    # Next.js App Router
-│   ├── zksig/             # zkSig - Threshold signatures (TSS/DMS)
+│   ├── zksig/             # zkSig - Threshold signatures
 │   │   ├── page.tsx       # Main zkSig page with tabs
 │   │   ├── components/    # Tab section components
 │   │   │   ├── tab-navigation.tsx    # Tab switcher UI
@@ -34,6 +34,9 @@ rektsafe/
 │   │   ├── hooks/         # useBalances hook
 │   │   ├── lib/           # Privacy Cash SDK wrapper
 │   │   └── context/       # Transaction context
+│   ├── wallet/            # RektSafe Vault launch page (route /wallet/, nav label Wallet)
+│   │   ├── page.tsx       # Coming-soon hardware wallet content
+│   │   └── layout.tsx     # Page metadata
 │   ├── privacy/           # Privacy policy page
 │   ├── terms/             # Terms of service page
 │   ├── globals.css        # Cypherpunk theme variables
@@ -45,6 +48,7 @@ rektsafe/
 │   ├── footer.tsx         # Minimal footer
 │   ├── hero.tsx           # Animated hero section
 │   ├── features.tsx       # Feature cards
+│   ├── hardware-teaser.tsx # Home teaser linking to /wallet/
 │   ├── how-it-works.tsx   # Process steps with tabs
 │   ├── wallet-provider.tsx # Wallet connection provider
 │   ├── wallet-session-provider.tsx # Session management
@@ -77,7 +81,7 @@ rektsafe/
 
 | Category | Technology |
 |----------|------------|
-| Framework | Next.js 15 (App Router) |
+| Framework | Next.js 16 (App Router). `pnpm dev` and `pnpm build` pass `--webpack` so the privacy SDK polyfills in `next.config.ts` apply. Turbopack is the Next.js 16 default and does not read that webpack config. |
 | Language | TypeScript 5 |
 | Styling | Tailwind CSS 4 + shadcn/ui |
 | Animation | Framer Motion |
@@ -183,8 +187,9 @@ const nextConfig = {
 | Route | Description |
 |-------|-------------|
 | `/` | Landing page |
-| `/zksig/` | zkSig - Threshold signatures (TSS/DMS) |
-| `/zksend/` | Private transfers - zkSend app |
+| `/zksig/` | zkSig - Threshold signatures. Solana wallets only. |
+| `/zksend/` | Private transfers. Solana: SOL, USDC, USDT. Ethereum mainnet: ETH and USDT. EVM nav includes zkSend. Other EVM networks are asked to switch to Ethereum. |
+| `/wallet/` | RektSafe Vault - coming-soon hardware wallet. Navbar label is **Wallet**. Do not add a footer link. Do not label any link just "Vault". The product name is RektSafe Vault. |
 | `/privacy/` | Privacy policy |
 | `/terms/` | Terms of service |
 
@@ -214,10 +219,12 @@ Static files are generated in `/dist/`:
 - `index.html` - Home page
 - `zksig/index.html` - zkSig threshold signatures
 - `zksend/index.html` - Private transfers
+- `wallet/index.html` - RektSafe Vault launch page
 - `privacy/index.html` - Privacy page
 - `terms/index.html` - Terms page
 - `_next/` - JS/CSS assets
-- `wasm/` - WASM files for ZK proofs
+- `wasm/` - WASM files for Solana ZK proofs
+- `circuit2.wasm` and `circuit2.zkey` - Ethereum privacy circuit. The SDK loads them from `keyBasePath` `/circuit` plus the input count `2`.
 
 **Note**: `dist/` is excluded from git (see .gitignore)
 
@@ -250,11 +257,11 @@ Static files are generated in `/dist/`:
 
 ## Security Considerations
 
-- All crypto happens client-side via Web Crypto API
-- No keys or data sent to servers
-- Users responsible for key management
-- Uses standard, audited algorithms only
-- Privacy Cash SDK for ZK-based privacy
+- zkSig key splitting, encryption, and signing run in the browser via the Web Crypto API
+- RektSafe does not store keys, shares, or files
+- zkSend sends transactions to public RPC endpoints and Privacy Cash relayers. RektSafe does not operate those services
+- Users are responsible for key management
+- zkSig uses Ed25519, AES-256-GCM, and SHA-256. zkSend adds zero-knowledge proofs for private transfers
 
 ## Wallet Integration
 
@@ -274,9 +281,11 @@ The app uses a wallet session system for zkSend:
 3. Session persists across navigation (in-memory)
 4. No need to sign again for shield/send/unshield operations
 
-**Signing Message:**
+**Solana signing message** (do not reuse this for Ethereum):
 ```
-Welcome to RektSafe. For Cypherpunks, By Cypherpunks
+Welcome to RektSafe. For Cypherpunks, By Cypherpunks! 
+
+Powered by NetSepio
 ```
 
 ### Components
@@ -312,15 +321,36 @@ function MyComponent() {
 }
 ```
 
+## RektSafe Vault - Hardware Wallet
+
+Launch page at `app/wallet/`. Public route is `/wallet/`. The navbar calls the link **Wallet** and shows a Soon badge. The navbar label is Wallet, not Vault.
+
+The page is informational. There is no checkout, price, or ship date. Keep these claims exact:
+
+- Crypto self-custody for Ethereum, Solana, and supported assets. Keys stay in secure hardware. Signing needs physical confirmation.
+- Identity: FIDO2/WebAuthn for compatible accounts, hardware 2FA, and TOTP/HOTP codes. Encrypted password storage is planned, not available.
+- AI Guardian explains supported signing requests on the device. The sample Ethereum unlimited-approval screen is illustrative. Transaction details are verified independently; AI adds context.
+- V1 is cloud-assisted analysis through a phone or laptop, with signing on the device. V2 is on-device AI for offline explanations of supported operations.
+- Proposed hardware foundation: ESP32-S3 + NXP SE050E2, with a screen, physical approval buttons, and USB-C.
+- EAL5+/EAL6+ is an evaluation pathway. Certification is a development objective, not an existing certification.
+
+Home discovery lives in `components/hardware-teaser.tsx` and a hero link. Do not add a footer link for this page.
+
 ## Privacy Cash SDK Integration
 
 ### Overview
-The app integrates `privacycash` SDK for private transactions on Solana.
+The app integrates `privacycash` for Solana and `privacycash-evm` for Ethereum mainnet.
+
+Solana zkSend still signs `Welcome to RektSafe. For Cypherpunks, By Cypherpunks!` and keeps that signature in memory. Ethereum zkSend signs exactly `Privacy Money account sign in` and stores it in `localStorage` as `evm_sign_<address>`, which is what the EVM SDK uses to decrypt notes. A different message makes shielded funds undecryptable.
+
+Ethereum deposits and withdrawals use `ETH_NETWORK`. Supported pools are ETH and USDT (`0xdAC17F958D2ee523a2206206994597C13D831ec7`). Withdrawals are relayed. The amount entered is deducted from the private balance, and the network fee plus protocol fee come out of that amount. `WalletGuard` accepts an EVM wallet on `/zksend/` only when `allowEthereum` is set and the chain is Ethereum. Other EVM networks are asked to switch to Ethereum. AppKit lists Ethereum mainnet as the EVM network.
 
 ### Supported Tokens
 - **SOL** - Native Solana
-- **USDC** - `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`
-- **USDT** - `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB`
+- **USDC** - `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` (Solana)
+- **USDT** - `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB` (Solana)
+- **ETH** - Ethereum mainnet
+- **USDT** - `0xdAC17F958D2ee523a2206206994597C13D831ec7` (Ethereum)
 
 ### SDK Wrapper
 Located at `app/zksend/lib/privacy-cash-sdk.ts`:
@@ -342,6 +372,7 @@ await privacyCashSDK.getPrivateBalance();
 - `hasher_wasm_simd_bg.wasm` - Hasher for ZK proofs (SIMD)
 - `rektsafe.wasm` - Circuit for proof generation
 - `rektsafe.zkey` - Proving key
+- `public/circuit2.wasm` and `public/circuit2.zkey` - Ethereum proving artifacts copied from `privacycash-evm`
 
 ### Browser Polyfills
 
@@ -351,6 +382,8 @@ The SDK requires Node.js modules that need polyfills:
 |--------|-------------------|
 | `path` | `lib/browser-polyfills/path.ts` |
 | `node-localstorage` | `lib/browser-polyfills/node-localstorage.ts` |
+| `web-worker` | `lib/browser-polyfills/web-worker.js` (browser `Worker`; avoids the Node dynamic `require`) |
+| `bigint-buffer` | `lib/browser-polyfills/bigint-buffer.js` (pure JS, no native addon) |
 | `fs`, `os`, etc. | `fallback: false` in webpack config |
 
 ### Key Components
@@ -365,4 +398,4 @@ The SDK requires Node.js modules that need polyfills:
 
 ---
 
-Last updated: February 2026
+Last updated: October 2026

@@ -18,11 +18,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useTransactions } from "../context/transaction-context";
-import { useBalances } from "../hooks/use-balances";
+import { useBalances, type TokenSymbol } from "../hooks/use-balances";
 import { useWalletSession } from "@/components/wallet-session-provider";
-import { privacyCashSDK, type TokenSymbol } from "../lib/privacy-cash-sdk";
+import { privacyCashSDK } from "../lib/privacy-cash-sdk";
+import { isEthAddress, withdrawEthereum } from "../lib/evm-privacy";
+import { txExplorerUrl } from "../lib/explorer";
 
-// Validate Solana address
 const isValidSolanaAddress = (address: string): boolean => {
   try {
     return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
@@ -34,8 +35,9 @@ const isValidSolanaAddress = (address: string): boolean => {
 export function UnshieldSection() {
   const { address } = useAppKitAccount();
   const { addTransaction, updateTransaction } = useTransactions();
-  const { isInitialized: isSessionInitialized } = useWalletSession();
-  const { tokens, privateTokens, refresh } = useBalances();
+  const { isInitialized: isSessionInitialized, evmSignature } =
+    useWalletSession();
+  const { tokens, privateTokens, refresh, chain } = useBalances();
 
   const [selectedToken, setSelectedToken] = useState<TokenSymbol | null>(null);
   const [amount, setAmount] = useState("");
@@ -66,10 +68,17 @@ export function UnshieldSection() {
     setAmount(privateBalance.toString());
   };
 
+  const recipientIsValid = (value: string) =>
+    chain === "ethereum" ? isEthAddress(value) : isValidSolanaAddress(value);
+
   const handleRecipientChange = (value: string) => {
     setRecipient(value);
-    if (value && !isValidSolanaAddress(value)) {
-      setRecipientError("Invalid Solana address");
+    if (value && !recipientIsValid(value)) {
+      setRecipientError(
+        chain === "ethereum"
+          ? "Invalid Ethereum address"
+          : "Invalid Solana address",
+      );
     } else {
       setRecipientError("");
     }
@@ -98,7 +107,7 @@ export function UnshieldSection() {
       return;
     }
 
-    if (!isValidSolanaAddress(recipient)) {
+    if (!recipientIsValid(recipient)) {
       setStatus({ type: "error", message: "Invalid recipient address" });
       return;
     }
@@ -108,7 +117,16 @@ export function UnshieldSection() {
       return;
     }
 
-    if (!isSessionInitialized) {
+    if (chain === "ethereum") {
+      if (!evmSignature || !address) {
+        setStatus({
+          type: "error",
+          message:
+            "Wallet session not initialized. Please sign the message first.",
+        });
+        return;
+      }
+    } else if (!isSessionInitialized) {
       setStatus({
         type: "error",
         message:
@@ -120,28 +138,43 @@ export function UnshieldSection() {
     setIsLoading(true);
     setStatus({ type: null, message: "" });
 
-    const txId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    addTransaction({
+    const txId = addTransaction({
       type: "unshield",
       assetIn: selectedToken,
       amountIn: parseFloat(amount),
       recipient: recipient,
       status: "pending",
+      chain,
     });
 
     try {
-      const lamports = Math.floor(parseFloat(amount) * 1e9);
-      const result = await privacyCashSDK.withdraw(lamports, recipient);
+      let signature: string;
+      if (chain === "ethereum") {
+        if (!address || !evmSignature) {
+          throw new Error("Wallet session not initialized.");
+        }
+        signature = await withdrawEthereum({
+          amount: parseFloat(amount),
+          token: selectedToken === "USDT" ? "usdt" : "eth",
+          recipient,
+          address,
+          signature: evmSignature,
+        });
+      } else {
+        const lamports = Math.floor(parseFloat(amount) * 1e9);
+        signature = (await privacyCashSDK.withdraw(lamports, recipient))
+          .signature;
+      }
 
       updateTransaction(txId, {
         status: "confirmed",
-        txSignature: result.signature,
+        txSignature: signature,
       });
 
       setStatus({
         type: "success",
         message: `Successfully unshielded ${amount} ${selectedToken} to ${recipient.slice(0, 6)}...${recipient.slice(-4)}`,
-        txSignature: result.signature,
+        txSignature: signature,
       });
 
       setAmount("");
@@ -310,7 +343,11 @@ export function UnshieldSection() {
           <Input
             value={recipient}
             onChange={(e) => handleRecipientChange(e.target.value)}
-            placeholder="Enter Solana address..."
+            placeholder={
+              chain === "ethereum"
+                ? "Enter an Ethereum address (0x...)"
+                : "Enter Solana address..."
+            }
             className="h-14 font-mono text-sm"
           />
           {recipientError && (
@@ -358,9 +395,9 @@ export function UnshieldSection() {
             <div>
               <p className="text-sm text-foreground font-medium">Unshielding</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Withdraw your assets from the privacy pool back to a regular
-                Solana address. The recipient will receive clean, unlinked
-                funds.
+                {chain === "ethereum"
+                  ? "Withdraw ETH or USDT from the Ethereum privacy pool. A network fee plus a 0.35% protocol fee come out of the amount, and the recipient receives the rest."
+                  : "Withdraw your assets from the privacy pool back to a regular Solana address. The recipient will receive clean, unlinked funds."}
               </p>
             </div>
           </div>
@@ -421,7 +458,7 @@ export function UnshieldSection() {
               </p>
               {status.txSignature && (
                 <a
-                  href={`https://explorer.solana.com/tx/${status.txSignature}`}
+                  href={txExplorerUrl(chain, status.txSignature)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"
