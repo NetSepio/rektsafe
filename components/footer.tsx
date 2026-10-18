@@ -8,54 +8,14 @@ export function Footer() {
   return (
     <footer className="border-t border-border/50 bg-background/50 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          {/* Logo & Copyright */}
+        <div className="flex flex-col items-center gap-6 md:grid md:grid-cols-3 md:items-center">
+          {/* Social Links */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            className="flex items-center gap-2"
-          >
-            <Shield className="w-5 h-5 text-primary" />
-            <span className="font-mono text-sm text-muted-foreground">
-              <span className="text-foreground font-semibold">rektSafe</span>
-              <span className="mx-2">|</span>
-              <span>
-                © {new Date().getFullYear()} NetSepio. All Rights Reserved
-              </span>
-            </span>
-          </motion.div>
-
-          {/* Legal Links */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            viewport={{ once: true }}
-            className="flex items-center gap-6"
-          >
-            <Link
-              href="/privacy/"
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              Privacy
-            </Link>
-            <Link
-              href="/terms/"
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              Terms
-            </Link>
-          </motion.div>
-
-          {/* Social Links */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            viewport={{ once: true }}
-            className="flex items-center gap-4"
+            className="flex items-center justify-center gap-4 md:justify-start"
           >
             <a
               href="https://github.com/netsepio/rektsafe"
@@ -91,6 +51,46 @@ export function Footer() {
             >
               <Mail className="w-4 h-4" />
             </a>
+          </motion.div>
+
+          {/* Logo & Copyright */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            viewport={{ once: true }}
+            className="flex items-center justify-center gap-2 text-center"
+          >
+            <Shield className="w-5 h-5 text-primary shrink-0" />
+            <span className="font-mono text-sm text-muted-foreground">
+              <span className="text-foreground font-semibold">rektSafe</span>
+              <span className="mx-2">|</span>
+              <span>
+                © {new Date().getFullYear()} NetSepio. All Rights Reserved
+              </span>
+            </span>
+          </motion.div>
+
+          {/* Legal Links */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            viewport={{ once: true }}
+            className="flex items-center justify-center gap-6 md:justify-end"
+          >
+            <Link
+              href="/privacy/"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              Privacy
+            </Link>
+            <Link
+              href="/terms/"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              Terms
+            </Link>
           </motion.div>
         </div>
 
